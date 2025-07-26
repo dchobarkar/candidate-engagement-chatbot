@@ -12,6 +12,14 @@ import {
   ChatState,
   ChatActions,
 } from "./types";
+import {
+  validateSession,
+  isSessionExpired,
+  saveSessionToStorage,
+  getSessionsFromStorage,
+  markSessionAsCompleted,
+  markSessionAsExpired,
+} from "./session-utils";
 
 // STORE INTERFACE
 interface ChatStore extends ChatState, ChatActions {
@@ -22,6 +30,8 @@ interface ChatStore extends ChatState, ChatActions {
   clearConversation: () => void;
   exportConversation: () => string;
   importConversation: (data: string) => void;
+  completeSession: () => void;
+  validateCurrentSession: () => boolean;
 }
 
 // INITIAL STATE
@@ -83,6 +93,17 @@ export const useChatStore = create<ChatStore>()(
           messages: [...state.messages, message],
           error: null, // Clear errors when new message is added
         }));
+
+        // Save session to storage when message is added
+        const currentSession = get().currentSession;
+        if (currentSession) {
+          const updatedSession = {
+            ...currentSession,
+            messages: [...get().messages, message],
+            updatedAt: new Date(),
+          };
+          saveSessionToStorage(updatedSession);
+        }
       },
 
       // Profile Management
@@ -94,20 +115,53 @@ export const useChatStore = create<ChatStore>()(
             lastUpdated: new Date(),
           },
         }));
+
+        // Update session with new profile
+        const currentSession = get().currentSession;
+        if (currentSession) {
+          const updatedSession = {
+            ...currentSession,
+            candidateProfile: {
+              ...currentSession.candidateProfile,
+              ...profile,
+              lastUpdated: new Date(),
+            },
+            updatedAt: new Date(),
+          };
+          saveSessionToStorage(updatedSession);
+        }
       },
 
       // Session Management
       setSession: (session: ConversationSession) => {
-        set({
-          currentSession: session,
-          messages: session.messages,
-          candidateProfile: session.candidateProfile,
-          jobContext: session.jobContext,
-          error: null,
-        });
+        if (validateSession(session)) {
+          set({
+            currentSession: session,
+            messages: session.messages,
+            candidateProfile: session.candidateProfile,
+            jobContext: session.jobContext,
+            error: null,
+          });
+          saveSessionToStorage(session);
+        } else {
+          set({
+            error: {
+              code: "INVALID_SESSION",
+              message: "Session is invalid or expired",
+              timestamp: new Date(),
+            },
+          });
+        }
       },
 
       clearSession: () => {
+        const currentSession = get().currentSession;
+        if (currentSession) {
+          // Mark session as completed before clearing
+          const completedSession = markSessionAsCompleted(currentSession);
+          saveSessionToStorage(completedSession);
+        }
+
         set({
           currentSession: null,
           messages: [],
@@ -146,20 +200,30 @@ export const useChatStore = create<ChatStore>()(
           setLoading(true);
           setError(null);
 
-          // Create new session
-          const sessionId = uuidv4();
-          const newSession: ConversationSession = {
-            id: sessionId,
-            messages: [],
-            candidateProfile: initialCandidateProfile,
-            jobContext: jobDescription,
-            status: "active",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-          };
+          // Check for existing valid session
+          const existingSessions = getSessionsFromStorage();
+          const validSession = existingSessions.find(
+            (session) => validateSession(session) && !isSessionExpired(session)
+          );
 
-          setSession(newSession);
+          if (validSession) {
+            setSession(validSession);
+          } else {
+            // Create new session
+            const sessionId = uuidv4();
+            const newSession: ConversationSession = {
+              id: sessionId,
+              messages: [],
+              candidateProfile: initialCandidateProfile,
+              jobContext: jobDescription,
+              status: "active",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            };
+
+            setSession(newSession);
+          }
         } catch (error) {
           setError({
             code: "SESSION_INIT_ERROR",
@@ -180,6 +244,16 @@ export const useChatStore = create<ChatStore>()(
           setError({
             code: "NO_SESSION",
             message: "No active session found",
+            timestamp: new Date(),
+          });
+          return;
+        }
+
+        // Validate session before sending message
+        if (!validateSession(currentSession)) {
+          setError({
+            code: "SESSION_EXPIRED",
+            message: "Session has expired",
             timestamp: new Date(),
           });
           return;
@@ -317,6 +391,38 @@ export const useChatStore = create<ChatStore>()(
             },
           });
         }
+      },
+
+      // Complete session
+      completeSession: () => {
+        const currentSession = get().currentSession;
+        if (currentSession) {
+          const completedSession = markSessionAsCompleted(currentSession);
+          saveSessionToStorage(completedSession);
+          set({ currentSession: completedSession });
+        }
+      },
+
+      // Validate current session
+      validateCurrentSession: () => {
+        const currentSession = get().currentSession;
+        if (!currentSession) return false;
+
+        if (!validateSession(currentSession)) {
+          const expiredSession = markSessionAsExpired(currentSession);
+          saveSessionToStorage(expiredSession);
+          set({
+            currentSession: null,
+            error: {
+              code: "SESSION_EXPIRED",
+              message: "Session has expired",
+              timestamp: new Date(),
+            },
+          });
+          return false;
+        }
+
+        return true;
       },
     }),
     {
