@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 
 import { jobDescription } from "../data/job-description";
+import { sessionManager } from "./session-manager";
 import {
   ChatMessage,
   CandidateProfile,
@@ -200,28 +201,17 @@ export const useChatStore = create<ChatStore>()(
           setLoading(true);
           setError(null);
 
-          // Check for existing valid session
-          const existingSessions = getSessionsFromStorage();
-          const validSession = existingSessions.find(
+          // Check for existing valid session using SessionManager
+          const activeSessions = sessionManager.getActiveSessions();
+          const validSession = activeSessions.find(
             (session) => validateSession(session) && !isSessionExpired(session)
           );
 
           if (validSession) {
             setSession(validSession);
           } else {
-            // Create new session
-            const sessionId = uuidv4();
-            const newSession: ConversationSession = {
-              id: sessionId,
-              messages: [],
-              candidateProfile: initialCandidateProfile,
-              jobContext: jobDescription,
-              status: "active",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-            };
-
+            // Create new session using SessionManager
+            const newSession = sessionManager.createSession();
             setSession(newSession);
           }
         } catch (error) {

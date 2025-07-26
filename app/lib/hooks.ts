@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useChatStore } from "./store";
 import { CandidateProfile, MessageRole } from "./types";
+import { sessionManager } from "./session-manager";
 
 // CORE STORE HOOKS
 export const useChat = () => {
@@ -53,6 +54,75 @@ export const useJob = () => {
 
   return {
     jobContext,
+  };
+};
+
+// SESSION MANAGEMENT HOOKS
+export const useSessionManager = () => {
+  const createSession = useCallback(
+    (candidateProfile?: Partial<CandidateProfile>) => {
+      return sessionManager.createSession(candidateProfile);
+    },
+    []
+  );
+
+  const getSession = useCallback((sessionId: string) => {
+    return sessionManager.getSession(sessionId);
+  }, []);
+
+  const validateSession = useCallback((sessionId: string) => {
+    return sessionManager.validateSession(sessionId);
+  }, []);
+
+  const completeSession = useCallback((sessionId: string) => {
+    return sessionManager.completeSession(sessionId);
+  }, []);
+
+  const deleteSession = useCallback((sessionId: string) => {
+    return sessionManager.deleteSession(sessionId);
+  }, []);
+
+  const extendSession = useCallback((sessionId: string, hours: number = 24) => {
+    return sessionManager.extendSession(sessionId, hours);
+  }, []);
+
+  const cleanupExpiredSessions = useCallback(() => {
+    return sessionManager.cleanupExpiredSessions();
+  }, []);
+
+  const getActiveSessions = useCallback(() => {
+    return sessionManager.getActiveSessions();
+  }, []);
+
+  const getAllSessions = useCallback(() => {
+    return sessionManager.getAllSessions();
+  }, []);
+
+  const getSessionStatistics = useCallback(() => {
+    return sessionManager.getSessionStatistics();
+  }, []);
+
+  const exportSession = useCallback((sessionId: string) => {
+    return sessionManager.exportSession(sessionId);
+  }, []);
+
+  const importSession = useCallback((data: string) => {
+    return sessionManager.importSession(data);
+  }, []);
+
+  return {
+    createSession,
+    getSession,
+    validateSession,
+    completeSession,
+    deleteSession,
+    extendSession,
+    cleanupExpiredSessions,
+    getActiveSessions,
+    getAllSessions,
+    getSessionStatistics,
+    exportSession,
+    importSession,
   };
 };
 
