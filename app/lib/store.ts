@@ -17,7 +17,6 @@ import {
   validateSession,
   isSessionExpired,
   saveSessionToStorage,
-  getSessionsFromStorage,
   markSessionAsCompleted,
   markSessionAsExpired,
 } from "./session-utils";
