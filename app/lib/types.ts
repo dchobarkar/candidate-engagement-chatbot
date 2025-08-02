@@ -139,10 +139,84 @@ export interface ProfileUpdateResponse {
 }
 
 // ERROR INTERFACES
+// ============================================================================
+// ERROR HANDLING TYPES
+// ============================================================================
+
+export type ErrorCode =
+  // Validation Errors (400)
+  | "VALIDATION_ERROR"
+  | "INVALID_JSON"
+  | "MISSING_REQUIRED_FIELD"
+  | "INVALID_FORMAT"
+  | "INVALID_UUID"
+  | "INVALID_EMAIL"
+  | "INVALID_PHONE"
+  | "INVALID_DATE"
+  | "INVALID_NUMBER"
+  | "INVALID_BOOLEAN"
+  | "INVALID_ENUM"
+  | "FIELD_TOO_LONG"
+  | "FIELD_TOO_SHORT"
+  | "VALUE_TOO_HIGH"
+  | "VALUE_TOO_LOW"
+  | "DUPLICATE_VALUE"
+
+  // Authentication & Authorization Errors (401, 403)
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "INVALID_API_KEY"
+  | "INSUFFICIENT_PERMISSIONS"
+
+  // Resource Errors (404)
+  | "RESOURCE_NOT_FOUND"
+  | "SESSION_NOT_FOUND"
+  | "PROFILE_NOT_FOUND"
+  | "MESSAGE_NOT_FOUND"
+  | "JOB_NOT_FOUND"
+
+  // Conflict Errors (409)
+  | "RESOURCE_CONFLICT"
+  | "SESSION_EXPIRED"
+  | "SESSION_INVALID"
+  | "PROFILE_CONFLICT"
+
+  // Rate Limiting Errors (429)
+  | "RATE_LIMIT_EXCEEDED"
+  | "TOO_MANY_REQUESTS"
+
+  // Server Errors (500)
+  | "INTERNAL_SERVER_ERROR"
+  | "DATABASE_ERROR"
+  | "EXTERNAL_API_ERROR"
+  | "LLM_ERROR"
+  | "CONVERSATION_ERROR"
+  | "SESSION_CREATION_ERROR"
+  | "SESSION_RETRIEVAL_ERROR"
+  | "SESSION_UPDATE_ERROR"
+  | "SESSION_DELETION_ERROR"
+  | "PROFILE_RETRIEVAL_ERROR"
+  | "PROFILE_UPDATE_ERROR"
+  | "PROFILE_VALIDATION_ERROR"
+  | "PROFILE_ANALYSIS_ERROR"
+  | "MESSAGE_PROCESSING_ERROR"
+
+  // Business Logic Errors
+  | "LOW_CONFIDENCE"
+  | "INSUFFICIENT_DATA"
+  | "INVALID_ACTION"
+  | "NO_ACTIVE_SESSION"
+  | "SESSION_VALIDATION_ERROR"
+  | "SESSION_EXTENSION_ERROR"
+  | "SESSION_COMPLETION_ERROR";
+
+export type ErrorSeverity = "low" | "medium" | "high" | "critical";
+
 export interface ApiError {
-  code: string;
+  code: ErrorCode;
   message: string;
   details?: any;
+  severity: ErrorSeverity;
   timestamp: Date;
 }
 
@@ -150,6 +224,17 @@ export interface ValidationError {
   field: string;
   message: string;
   value?: any;
+  code?: string;
+}
+
+export interface ApiResponse {
+  success: boolean;
+  data?: any;
+  error?: ApiError;
+  message?: string;
+  requestId?: string;
+  timestamp?: string;
+  warnings?: string[];
 }
 
 // STATE MANAGEMENT INTERFACES
