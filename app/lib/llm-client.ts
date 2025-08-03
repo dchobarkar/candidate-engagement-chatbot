@@ -1,372 +1,565 @@
 import OpenAI from "openai";
-import { ConversationContext, LLMResponse } from "./types";
+import {
+  ChatMessage,
+  JobDescription,
+  CandidateProfile,
+  ConversationStage,
+} from "./types";
+import { Logger } from "./logger";
 
-// ============================================================================
-// LLM CLIENT CLASS
-// ============================================================================
+export interface LLMConfig {
+  apiKey: string;
+  model: string;
+  maxTokens: number;
+  temperature: number;
+  maxRetries: number;
+  retryDelay: number;
+}
+
+export interface ConversationContext {
+  messages: ChatMessage[];
+  jobDescription: JobDescription;
+  candidateProfile?: CandidateProfile;
+  stage: ConversationStage;
+  extractedInfo: Record<string, any>;
+}
+
+export interface LLMResponse {
+  content: string;
+  confidence: number;
+  extractedData?: Record<string, any>;
+  suggestedStage?: ConversationStage;
+  followUpQuestions?: string[];
+}
 
 export class LLMClient {
-  private openai: OpenAI;
-  private model: string = "gpt-4o-mini";
-  private maxTokens: number = 1000;
-  private temperature: number = 0.7;
+  private client: OpenAI;
+  private config: LLMConfig;
+  private logger: Logger;
+  private requestCount: number = 0;
+  private lastRequestTime: number = 0;
 
-  constructor() {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error("OPENAI_API_KEY environment variable is required");
+  constructor(config: LLMConfig) {
+    this.config = config;
+    this.logger = Logger.getInstance();
+
+    if (!config.apiKey) {
+      throw new Error("OpenAI API key is required");
     }
 
-    this.openai = new OpenAI({
-      apiKey,
+    this.client = new OpenAI({
+      apiKey: config.apiKey,
+      dangerouslyAllowBrowser: false, // Ensure API key is not exposed to browser
     });
+
+    this.logger.info("LLMClient initialized", { model: config.model });
   }
 
-  // ========================================================================
-  // MAIN MESSAGE PROCESSING
-  // ========================================================================
-
+  /**
+   * Process a user message and generate a contextual response
+   */
   async processMessage(
-    message: string,
+    userMessage: string,
     context: ConversationContext
-  ): Promise<string> {
+  ): Promise<LLMResponse> {
+    const startTime = Date.now();
+
     try {
-      // Build the conversation prompt
-      const prompt = this.buildPrompt(message, context);
+      // Check rate limiting
+      this.checkRateLimit();
 
-      // Generate response using OpenAI
-      const response = await this.generateResponse(prompt);
+      // Build the prompt based on context
+      const prompt = this.buildPrompt(userMessage, context);
 
-      return response;
-    } catch (error) {
-      console.error("Error processing message with LLM:", error);
-      return this.getFallbackResponse(message, context);
-    }
-  }
+      // Generate response from OpenAI
+      const response = await this.generateResponse(prompt, context);
 
-  // ========================================================================
-  // PROMPT ENGINEERING
-  // ========================================================================
+      // Post-process the response
+      const processedResponse = this.postProcessResponse(response, context);
 
-  private buildPrompt(message: string, context: ConversationContext): string {
-    const jobContext = context.jobContext;
-    const candidateProfile = context.candidateProfile;
-    const conversationHistory = context.conversationHistory;
-    const conversationStage = context.conversationStage;
-
-    // System prompt for job-specific responses
-    const systemPrompt = this.buildSystemPrompt(jobContext, conversationStage);
-
-    // Conversation history
-    const conversationContext =
-      this.buildConversationContext(conversationHistory);
-
-    // Candidate profile context
-    const profileContext = this.buildProfileContext(candidateProfile);
-
-    // Current message
-    const currentMessage = `User: ${message}`;
-
-    // Combine all parts
-    const fullPrompt = `${systemPrompt}
-
-${profileContext}
-
-${conversationContext}
-
-${currentMessage}
-
-Assistant:`;
-
-    return fullPrompt;
-  }
-
-  private buildSystemPrompt(
-    jobContext: any,
-    conversationStage: string
-  ): string {
-    const jobTitle = jobContext.title;
-    const company = jobContext.company;
-    const requirements = jobContext.requirements.join(", ");
-    const responsibilities = jobContext.responsibilities.join(", ");
-
-    let stageSpecificInstructions = "";
-
-    switch (conversationStage) {
-      case "greeting":
-        stageSpecificInstructions = `
-- Greet the candidate warmly and introduce yourself as a recruitment assistant
-- Briefly mention the job opportunity (${jobTitle} at ${company})
-- Ask how they heard about the position
-- Keep the tone friendly and professional`;
-        break;
-
-      case "information_gathering":
-        stageSpecificInstructions = `
-- Ask for their name and contact information
-- Inquire about their current role and experience
-- Ask about their key skills and technologies they work with
-- Be conversational and make them feel comfortable`;
-        break;
-
-      case "qualification_assessment":
-        stageSpecificInstructions = `
-- Ask specific questions about their experience with required technologies
-- Inquire about their experience with similar responsibilities
-- Ask about their achievements and projects
-- Assess their fit for the role requirements`;
-        break;
-
-      case "salary_negotiation":
-        stageSpecificInstructions = `
-- Ask about their salary expectations
-- Discuss the salary range for the position
-- Inquire about their notice period and availability
-- Be transparent about compensation details`;
-        break;
-
-      case "wrapping_up":
-        stageSpecificInstructions = `
-- Summarize the key points discussed
-- Ask if they have any questions about the role
-- Provide next steps in the hiring process
-- Thank them for their time and interest`;
-        break;
-
-      default:
-        stageSpecificInstructions = `
-- Engage naturally with the candidate
-- Ask relevant questions based on the conversation flow
-- Provide helpful information about the role
-- Maintain a professional yet friendly tone`;
-    }
-
-    return `You are a recruitment assistant for ${company}, helping to engage with candidates for the ${jobTitle} position.
-
-Job Requirements: ${requirements}
-Key Responsibilities: ${responsibilities}
-
-Your role is to:
-- Engage candidates in natural conversation
-- Extract relevant information about their qualifications
-- Provide information about the job opportunity
-- Assess candidate fit for the position
-- Maintain a professional and friendly tone
-
-${stageSpecificInstructions}
-
-Important guidelines:
-- Be conversational and engaging
-- Ask one question at a time
-- Listen to their responses and ask follow-up questions
-- Provide relevant information about the role when appropriate
-- Keep responses concise but informative
-- Always be professional and respectful`;
-  }
-
-  private buildConversationContext(conversationHistory: any[]): string {
-    if (conversationHistory.length === 0) {
-      return "This is the beginning of the conversation.";
-    }
-
-    const recentMessages = conversationHistory.slice(-6); // Last 6 messages
-    const context = recentMessages
-      .map(
-        (msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
-      )
-      .join("\n");
-
-    return `Recent conversation:
-${context}`;
-  }
-
-  private buildProfileContext(candidateProfile: any): string {
-    const profile = candidateProfile;
-    let context = "Candidate Profile:";
-
-    if (profile.name) context += `\n- Name: ${profile.name}`;
-    if (profile.email) context += `\n- Email: ${profile.email}`;
-    if (
-      profile.experience &&
-      (profile.experience.years > 0 || profile.experience.months > 0)
-    ) {
-      context += `\n- Experience: ${profile.experience.years} years, ${profile.experience.months} months`;
-    }
-    if (profile.skills && profile.skills.length > 0) {
-      const skills = profile.skills.map((s: any) => s.name).join(", ");
-      context += `\n- Skills: ${skills}`;
-    }
-    if (profile.location && profile.location.current) {
-      context += `\n- Location: ${profile.location.current}`;
-    }
-
-    return context;
-  }
-
-  // ========================================================================
-  // OPENAI API INTEGRATION
-  // ========================================================================
-
-  private async generateResponse(prompt: string): Promise<string> {
-    try {
-      const completion = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a helpful recruitment assistant. Respond naturally and conversationally.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        max_tokens: this.maxTokens,
-        temperature: this.temperature,
-        top_p: 0.9,
-        frequency_penalty: 0.1,
-        presence_penalty: 0.1,
+      const processingTime = Date.now() - startTime;
+      this.logger.info("Message processed successfully", {
+        processingTime,
+        messageLength: userMessage.length,
+        responseLength: processedResponse.content.length,
+        confidence: processedResponse.confidence,
       });
 
-      const response = completion.choices[0]?.message?.content;
-      if (!response) {
-        throw new Error("No response received from OpenAI");
-      }
-
-      return response.trim();
+      return processedResponse;
     } catch (error) {
-      console.error("OpenAI API error:", error);
-      throw error;
+      this.logger.error("Error processing message", { error, userMessage });
+
+      // Return fallback response
+      return this.generateFallbackResponse(userMessage, context, error);
     }
   }
 
-  // ========================================================================
-  // FALLBACK RESPONSES
-  // ========================================================================
-
-  private getFallbackResponse(
-    message: string,
+  /**
+   * Build context-aware prompt for the LLM
+   */
+  private buildPrompt(
+    userMessage: string,
     context: ConversationContext
   ): string {
-    const conversationStage = context.conversationStage;
+    const { jobDescription, candidateProfile, stage, extractedInfo } = context;
 
-    switch (conversationStage) {
+    let prompt = `You are a professional HR chatbot specializing in candidate engagement for the position of ${
+      jobDescription.title
+    } at ${jobDescription.company}.
+
+Job Requirements:
+- Title: ${jobDescription.title}
+- Company: ${jobDescription.company}
+- Type: ${jobDescription.type}
+- Experience: ${jobDescription.experience} years
+- Skills: ${jobDescription.skills.join(", ")}
+- Salary: ${jobDescription.salary.min}-${jobDescription.salary.max} ${
+      jobDescription.salary.currency
+    }
+- Location: ${jobDescription.location}
+- Remote: ${jobDescription.remote ? "Yes" : "No"}
+
+Current Conversation Stage: ${stage}
+
+`;
+
+    // Add candidate profile if available
+    if (candidateProfile) {
+      prompt += `Candidate Information:
+- Name: ${candidateProfile.name || "Not provided"}
+- Experience: ${candidateProfile.experience || "Not specified"}
+- Skills: ${candidateProfile.skills?.join(", ") || "Not specified"}
+- Education: ${candidateProfile.education || "Not specified"}
+- Salary Expectation: ${candidateProfile.salaryExpectation || "Not specified"}
+
+`;
+    }
+
+    // Add extracted information
+    if (Object.keys(extractedInfo).length > 0) {
+      prompt += `Previously Extracted Information:
+${Object.entries(extractedInfo)
+  .map(([key, value]) => `- ${key}: ${value}`)
+  .join("\n")}
+
+`;
+    }
+
+    // Add stage-specific instructions
+    prompt += this.getStageSpecificInstructions(stage);
+
+    // Add the user message
+    prompt += `\nUser Message: "${userMessage}"
+
+Please provide a helpful, professional response that:
+1. Addresses the user's question or concern
+2. Provides relevant information about the job
+3. Extracts any candidate information mentioned
+4. Maintains a conversational, engaging tone
+5. Guides the conversation toward qualification assessment
+
+Response:`;
+
+    return prompt;
+  }
+
+  /**
+   * Get stage-specific instructions for the LLM
+   */
+  private getStageSpecificInstructions(stage: ConversationStage): string {
+    switch (stage) {
       case "greeting":
-        return "Hello! Thank you for your interest in the position. I'm here to help you learn more about the role and answer any questions you might have. How did you hear about this opportunity?";
+        return `\nInstructions for Greeting Stage:
+- Welcome the candidate warmly
+- Introduce the position briefly
+- Ask about their interest in the role
+- Begin gathering basic information\n`;
 
-      case "information_gathering":
-        return "I'd love to learn more about your background. Could you tell me a bit about your current role and experience?";
+      case "qualification":
+        return `\nInstructions for Qualification Stage:
+- Ask specific questions about experience and skills
+- Probe for relevant background information
+- Assess fit for the position
+- Gather detailed qualifications\n`;
 
-      case "qualification_assessment":
-        return "That's great to hear about your experience. Could you tell me more about your technical skills and the technologies you work with?";
+      case "assessment":
+        return `\nInstructions for Assessment Stage:
+- Evaluate candidate fit based on gathered information
+- Ask clarifying questions if needed
+- Provide feedback on qualifications
+- Suggest next steps\n`;
 
-      case "salary_negotiation":
-        return "Thank you for sharing that information. What are your salary expectations for this role?";
-
-      case "wrapping_up":
-        return "Thank you for taking the time to speak with me today. Do you have any questions about the role or the next steps in the process?";
+      case "closing":
+        return `\nInstructions for Closing Stage:
+- Summarize the conversation
+- Provide clear next steps
+- Thank the candidate
+- Offer to answer any final questions\n`;
 
       default:
-        return "I appreciate your message. Could you tell me a bit more about your background and what interests you about this position?";
+        return `\nInstructions for General Stage:
+- Be helpful and informative
+- Extract relevant candidate information
+- Guide the conversation appropriately
+- Maintain professional engagement\n`;
     }
   }
 
-  // ========================================================================
-  // CONFIGURATION METHODS
-  // ========================================================================
+  /**
+   * Generate response from OpenAI API
+   */
+  private async generateResponse(
+    prompt: string,
+    context: ConversationContext
+  ): Promise<OpenAI.Chat.ChatCompletion> {
+    const maxRetries = this.config.maxRetries;
+    let lastError: any;
 
-  setModel(model: string): void {
-    this.model = model;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        this.requestCount++;
+        this.lastRequestTime = Date.now();
+
+        const response = await this.client.chat.completions.create({
+          model: this.config.model,
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a professional HR chatbot. Respond concisely and professionally.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          max_tokens: this.config.maxTokens,
+          temperature: this.config.temperature,
+          presence_penalty: 0.1,
+          frequency_penalty: 0.1,
+        });
+
+        return response;
+      } catch (error: any) {
+        lastError = error;
+
+        if (error.status === 429) {
+          // Rate limit error
+          const delay = this.config.retryDelay * Math.pow(2, attempt - 1);
+          this.logger.warn(`Rate limited, retrying in ${delay}ms`, {
+            attempt,
+            delay,
+          });
+          await this.delay(delay);
+        } else if (error.status >= 500) {
+          // Server error
+          const delay = this.config.retryDelay * attempt;
+          this.logger.warn(`Server error, retrying in ${delay}ms`, {
+            attempt,
+            delay,
+          });
+          await this.delay(delay);
+        } else {
+          // Non-retryable error
+          break;
+        }
+      }
+    }
+
+    throw lastError || new Error("Max retries exceeded");
   }
 
-  setMaxTokens(maxTokens: number): void {
-    this.maxTokens = Math.max(1, Math.min(4000, maxTokens));
+  /**
+   * Post-process the LLM response
+   */
+  private postProcessResponse(
+    response: OpenAI.Chat.ChatCompletion,
+    context: ConversationContext
+  ): LLMResponse {
+    const content =
+      response.choices[0]?.message?.content ||
+      "I apologize, but I'm experiencing technical difficulties.";
+
+    // Calculate confidence based on response quality
+    const confidence = this.calculateConfidence(content, context);
+
+    // Extract any structured data mentioned
+    const extractedData = this.extractStructuredData(content);
+
+    // Determine suggested next stage
+    const suggestedStage = this.suggestNextStage(content, context.stage);
+
+    // Generate follow-up questions
+    const followUpQuestions = this.generateFollowUpQuestions(content, context);
+
+    return {
+      content,
+      confidence,
+      extractedData,
+      suggestedStage,
+      followUpQuestions,
+    };
   }
 
-  setTemperature(temperature: number): void {
-    this.temperature = Math.max(0, Math.min(2, temperature));
+  /**
+   * Calculate confidence score for the response
+   */
+  private calculateConfidence(
+    content: string,
+    context: ConversationContext
+  ): number {
+    let confidence = 0.7; // Base confidence
+
+    // Increase confidence for longer, more detailed responses
+    if (content.length > 100) confidence += 0.1;
+    if (content.length > 200) confidence += 0.1;
+
+    // Increase confidence for job-specific content
+    if (
+      content.toLowerCase().includes(context.jobDescription.title.toLowerCase())
+    )
+      confidence += 0.1;
+    if (
+      content
+        .toLowerCase()
+        .includes(context.jobDescription.company.toLowerCase())
+    )
+      confidence += 0.1;
+
+    // Increase confidence for professional tone
+    const professionalWords = [
+      "experience",
+      "skills",
+      "qualifications",
+      "position",
+      "role",
+      "company",
+    ];
+    const professionalCount = professionalWords.filter((word) =>
+      content.toLowerCase().includes(word)
+    ).length;
+    confidence += professionalCount * 0.05;
+
+    return Math.min(confidence, 1.0);
   }
 
-  // ========================================================================
-  // UTILITY METHODS
-  // ========================================================================
+  /**
+   * Extract structured data from response content
+   */
+  private extractStructuredData(content: string): Record<string, any> {
+    const data: Record<string, any> = {};
 
+    // Extract email addresses
+    const emailMatch = content.match(
+      /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/
+    );
+    if (emailMatch) data.email = emailMatch[0];
+
+    // Extract phone numbers
+    const phoneMatch = content.match(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/);
+    if (phoneMatch) data.phone = phoneMatch[0];
+
+    // Extract years of experience
+    const experienceMatch = content.match(
+      /(\d+)\s*(?:years?|yrs?)\s*(?:of\s*)?experience/i
+    );
+    if (experienceMatch) data.experience = parseInt(experienceMatch[1]);
+
+    // Extract salary expectations
+    const salaryMatch = content.match(/\$?(\d{1,3}(?:,\d{3})*(?:k|K)?)/i);
+    if (salaryMatch) data.salaryExpectation = salaryMatch[0];
+
+    return data;
+  }
+
+  /**
+   * Suggest the next conversation stage
+   */
+  private suggestNextStage(
+    content: string,
+    currentStage: ConversationStage
+  ): ConversationStage {
+    const contentLower = content.toLowerCase();
+
+    // Analyze content to suggest next stage
+    if (currentStage === "greeting") {
+      if (
+        contentLower.includes("experience") ||
+        contentLower.includes("skills")
+      ) {
+        return "qualification";
+      }
+    } else if (currentStage === "qualification") {
+      if (
+        contentLower.includes("assess") ||
+        contentLower.includes("evaluate")
+      ) {
+        return "assessment";
+      }
+    } else if (currentStage === "assessment") {
+      if (
+        contentLower.includes("next step") ||
+        contentLower.includes("follow up")
+      ) {
+        return "closing";
+      }
+    }
+
+    return currentStage; // Stay in current stage if unclear
+  }
+
+  /**
+   * Generate follow-up questions based on response
+   */
+  private generateFollowUpQuestions(
+    content: string,
+    context: ConversationContext
+  ): string[] {
+    const questions: string[] = [];
+    const contentLower = content.toLowerCase();
+
+    // Generate questions based on missing information
+    if (
+      !context.candidateProfile?.experience &&
+      !contentLower.includes("experience")
+    ) {
+      questions.push("How many years of experience do you have in this field?");
+    }
+
+    if (!context.candidateProfile?.skills && !contentLower.includes("skills")) {
+      questions.push("What are your key technical skills?");
+    }
+
+    if (
+      !context.candidateProfile?.education &&
+      !contentLower.includes("education")
+    ) {
+      questions.push("What is your educational background?");
+    }
+
+    if (
+      !context.candidateProfile?.salaryExpectation &&
+      !contentLower.includes("salary")
+    ) {
+      questions.push("What are your salary expectations for this role?");
+    }
+
+    return questions.slice(0, 3); // Limit to 3 questions
+  }
+
+  /**
+   * Generate fallback response when API fails
+   */
+  private generateFallbackResponse(
+    userMessage: string,
+    context: ConversationContext,
+    error: any
+  ): LLMResponse {
+    this.logger.warn("Using fallback response", { error: error.message });
+
+    let fallbackContent =
+      "I apologize, but I'm experiencing technical difficulties. ";
+
+    // Provide basic fallback based on context
+    if (context.stage === "greeting") {
+      fallbackContent += `Welcome! I\'m here to help you learn more about the ${context.jobDescription.title} position at ${context.jobDescription.company}. How can I assist you today?`;
+    } else if (context.stage === "qualification") {
+      fallbackContent += `I\'d like to learn more about your background. Could you tell me about your experience and skills?`;
+    } else {
+      fallbackContent += `I\'m here to help. Could you please rephrase your question?`;
+    }
+
+    return {
+      content: fallbackContent,
+      confidence: 0.3, // Low confidence for fallback
+      followUpQuestions: ["Could you please rephrase your question?"],
+    };
+  }
+
+  /**
+   * Check rate limiting
+   */
+  private checkRateLimit(): void {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+
+    // Simple rate limiting: max 10 requests per minute
+    if (timeSinceLastRequest < 6000 && this.requestCount > 10) {
+      throw new Error(
+        "Rate limit exceeded. Please wait before making another request."
+      );
+    }
+
+    // Reset counter if more than a minute has passed
+    if (timeSinceLastRequest > 60000) {
+      this.requestCount = 0;
+    }
+  }
+
+  /**
+   * Utility function for delays
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Update configuration
+   */
+  updateConfig(newConfig: Partial<LLMConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    this.logger.info("LLM configuration updated", { newConfig });
+  }
+
+  /**
+   * Test API connection
+   */
   async testConnection(): Promise<boolean> {
     try {
-      await this.openai.models.list();
+      await this.client.models.list();
+      this.logger.info("OpenAI API connection successful");
       return true;
     } catch (error) {
-      console.error("OpenAI connection test failed:", error);
+      this.logger.error("OpenAI API connection failed", { error });
       return false;
     }
   }
 
-  getUsageInfo(): {
-    model: string;
-    maxTokens: number;
-    temperature: number;
-  } {
+  /**
+   * Get current configuration
+   */
+  getConfig(): LLMConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Get usage statistics
+   */
+  getUsageStats(): { requestCount: number; lastRequestTime: number } {
     return {
-      model: this.model,
-      maxTokens: this.maxTokens,
-      temperature: this.temperature,
+      requestCount: this.requestCount,
+      lastRequestTime: this.lastRequestTime,
     };
   }
+}
 
-  // ========================================================================
-  // RATE LIMITING AND RETRY LOGIC
-  // ========================================================================
+// Default configuration
+export const defaultLLMConfig: LLMConfig = {
+  apiKey: process.env.OPENAI_API_KEY || "",
+  model: "gpt-3.5-turbo",
+  maxTokens: 500,
+  temperature: 0.7,
+  maxRetries: 3,
+  retryDelay: 1000,
+};
 
-  private async retryWithBackoff<T>(
-    operation: () => Promise<T>,
-    maxRetries: number = 3,
-    baseDelay: number = 1000
-  ): Promise<T> {
-    let lastError: Error;
+// Create singleton instance
+let llmClientInstance: LLMClient | null = null;
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        return await operation();
-      } catch (error: any) {
-        lastError = error;
-
-        // Don't retry on certain errors
-        if (
-          error.code === "invalid_api_key" ||
-          error.code === "insufficient_quota"
-        ) {
-          throw error;
-        }
-
-        // If this is the last attempt, throw the error
-        if (attempt === maxRetries) {
-          throw error;
-        }
-
-        // Calculate delay with exponential backoff
-        const delay = baseDelay * Math.pow(2, attempt);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-
-    throw lastError!;
+export function getLLMClient(config?: Partial<LLMConfig>): LLMClient {
+  if (!llmClientInstance) {
+    const finalConfig = { ...defaultLLMConfig, ...config };
+    llmClientInstance = new LLMClient(finalConfig);
   }
-
-  // ========================================================================
-  // PROMPT OPTIMIZATION
-  // ========================================================================
-
-  optimizePrompt(prompt: string): string {
-    // Remove extra whitespace
-    let optimized = prompt.replace(/\s+/g, " ").trim();
-
-    // Ensure prompt doesn't exceed token limits
-    const estimatedTokens = Math.ceil(optimized.length / 4);
-    if (estimatedTokens > 3000) {
-      optimized = optimized.substring(0, 12000); // Approximate character limit
-    }
-
-    return optimized;
-  }
+  return llmClientInstance;
 }
