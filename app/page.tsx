@@ -1,13 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { ChatInterface } from './components/ChatInterface';
-import { CandidateProfile } from './components/CandidateProfile';
-import { JobInfo } from './components/JobInfo';
-import { ErrorDisplay } from './components/ErrorDisplay';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { useChatStore } from './lib/store';
 import { useSession, useJob, useCandidate } from './lib/hooks';
+
+// Lazy load components for code splitting
+// Note: Using dynamic imports for better code splitting and performance
+const ChatInterface = lazy(() => 
+  import('./components/ChatInterface').then(module => ({ default: module.ChatInterface }))
+);
+const CandidateProfile = lazy(() => 
+  import('./components/CandidateProfile').then(module => ({ default: module.CandidateProfile }))
+);
+const JobInfo = lazy(() => 
+  import('./components/JobInfo').then(module => ({ default: module.JobInfo }))
+);
+const ErrorDisplay = lazy(() => 
+  import('./components/ErrorDisplay').then(module => ({ default: module.ErrorDisplay }))
+);
 
 export default function HomePage() {
   // State for layout management
@@ -56,17 +67,27 @@ export default function HomePage() {
     );
   }
 
+  // Loading fallback component
+  const LoadingFallback = () => (
+    <div className="flex items-center justify-center p-8">
+      <LoadingSpinner size="md" />
+      <span className="ml-2 text-gray-600">Loading...</span>
+    </div>
+  );
+
   // Error state
   if (error && !currentSession) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <ErrorDisplay
-          error={error}
-          title="Application Error"
-          message="Failed to initialize the application. Please refresh the page or try again later."
-          showRetry={true}
-          onRetry={() => window.location.reload()}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <ErrorDisplay
+            error={error}
+            title="Application Error"
+            message="Failed to initialize the application. Please refresh the page or try again later."
+            showRetry={true}
+            onRetry={() => window.location.reload()}
+          />
+        </Suspense>
       </div>
     );
   }
@@ -195,13 +216,15 @@ export default function HomePage() {
         {/* Error Display */}
         {error && (
           <div className="mb-6">
-            <ErrorDisplay
-              error={error}
-              title="Application Error"
-              message="An error occurred while using the application. Please try again or contact support if the problem persists."
-              showRetry={true}
-              onRetry={() => window.location.reload()}
-            />
+            <Suspense fallback={<LoadingFallback />}>
+              <ErrorDisplay
+                error={error}
+                title="Application Error"
+                message="An error occurred while using the application. Please try again or contact support if the problem persists."
+                showRetry={true}
+                onRetry={() => window.location.reload()}
+              />
+            </Suspense>
           </div>
         )}
 
@@ -211,29 +234,33 @@ export default function HomePage() {
             {/* Left Sidebar - Job Information */}
             <div className="lg:col-span-1 order-2 lg:order-1">
               <div className="sticky top-8">
-                <JobInfo 
-                  className="h-fit"
-                  showBenefits={true}
-                  showRequirements={true}
-                  showResponsibilities={true}
-                />
+                <Suspense fallback={<LoadingFallback />}>
+                  <JobInfo 
+                    className="h-fit"
+                    showBenefits={true}
+                    showRequirements={true}
+                    showResponsibilities={true}
+                  />
+                </Suspense>
               </div>
             </div>
             
             {/* Main Content - Chat Interface */}
             <div className="lg:col-span-2 order-1 lg:order-2">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-[600px] lg:h-[700px]">
-                <ChatInterface 
-                  className="h-full"
-                  onProfileUpdate={(profile) => {
-                    console.log('Profile updated:', profile);
-                    // Profile updates will be handled by the store
-                  }}
-                  onConversationComplete={(summary) => {
-                    console.log('Conversation completed:', summary);
-                    // Handle conversation completion
-                  }}
-                />
+                <Suspense fallback={<LoadingFallback />}>
+                  <ChatInterface 
+                    className="h-full"
+                    onProfileUpdate={(profile) => {
+                      console.log('Profile updated:', profile);
+                      // Profile updates will be handled by the store
+                    }}
+                    onConversationComplete={(summary) => {
+                      console.log('Conversation completed:', summary);
+                      // Handle conversation completion
+                    }}
+                  />
+                </Suspense>
               </div>
             </div>
           </div>
@@ -250,18 +277,20 @@ export default function HomePage() {
                 Back to Chat
               </button>
             </div>
-            <CandidateProfile 
-              className="w-full"
-              showEditMode={false}
-              onProfileUpdate={(profile) => {
-                console.log('Profile updated:', profile);
-                // Profile updates will be handled by the store
-              }}
-              onExport={(profile) => {
-                console.log('Exporting profile:', profile);
-                // Handle profile export
-              }}
-            />
+            <Suspense fallback={<LoadingFallback />}>
+              <CandidateProfile 
+                className="w-full"
+                showEditMode={false}
+                onProfileUpdate={(profile) => {
+                  console.log('Profile updated:', profile);
+                  // Profile updates will be handled by the store
+                }}
+                onExport={(profile) => {
+                  console.log('Exporting profile:', profile);
+                  // Handle profile export
+                }}
+              />
+            </Suspense>
           </div>
         )}
 
@@ -276,12 +305,14 @@ export default function HomePage() {
                 Back to Chat
               </button>
             </div>
-            <JobInfo 
-              className="w-full"
-              showBenefits={true}
-              showRequirements={true}
-              showResponsibilities={true}
-            />
+            <Suspense fallback={<LoadingFallback />}>
+              <JobInfo 
+                className="w-full"
+                showBenefits={true}
+                showRequirements={true}
+                showResponsibilities={true}
+              />
+            </Suspense>
           </div>
         )}
 

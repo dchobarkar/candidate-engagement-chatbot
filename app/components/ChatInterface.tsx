@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import {
   useChat,
   useSession,
@@ -231,7 +231,10 @@ export function ChatInterface({
   };
 
   // Check if we should show welcome message
-  const shouldShowWelcome = messages.length === 0 && !isLoading && !hasError;
+  const shouldShowWelcome = useMemo(
+    () => messages.length === 0 && !isLoading && !hasError,
+    [messages.length, isLoading, hasError]
+  );
 
   return (
     <div className={`flex flex-col h-full bg-gray-50 ${className}`}>

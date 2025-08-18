@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useCandidate, useProfileActions } from '../lib/hooks';
+import { useChatStore } from '../lib/store';
 import { CandidateProfile, SkillLevel, Education, Experience } from '../lib/types';
 import { format } from 'date-fns';
 
@@ -12,7 +13,7 @@ interface CandidateProfileDisplayProps {
   onExport?: (profile: CandidateProfile) => void;
 }
 
-export function CandidateProfileDisplay({
+export const CandidateProfile = memo(function CandidateProfile({
   className = '',
   showEditMode = false,
   onProfileUpdate,
@@ -24,8 +25,30 @@ export function CandidateProfileDisplay({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['overview']));
 
   // Custom hooks
-  const { candidateProfile, isLoading, error } = useCandidate();
-  const { updateProfile, validateProfile } = useProfileActions();
+  const { candidateProfile } = useCandidate();
+  const { updateProfile } = useProfileActions();
+  const isLoading = useChatStore((state) => state.isLoading);
+  
+  // Local error state (can be extended to use store error)
+  const [error, setError] = useState<string | null>(null);
+  
+  // Validation function
+  const validateProfile = useCallback((profile: Partial<CandidateProfile>) => {
+    const errors: string[] = [];
+    
+    if (profile.name && profile.name.trim().length < 2) {
+      errors.push('Name must be at least 2 characters');
+    }
+    
+    if (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+      errors.push('Invalid email format');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }, []);
 
   // Initialize edit form when profile changes
   useEffect(() => {
@@ -203,7 +226,7 @@ export function CandidateProfileDisplay({
                 {candidateProfile.name || 'Candidate Profile'}
               </h2>
               <p className="text-sm text-gray-600">
-                Profile completion: {calculateCompletion()}%
+                Profile completion: {calculateCompletion}%
               </p>
             </div>
           </div>
@@ -249,12 +272,12 @@ export function CandidateProfileDisplay({
       <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
           <span>Profile Completion</span>
-          <span>{calculateCompletion()}%</span>
+          <span>{calculateCompletion}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${calculateCompletion()}%` }}
+            style={{ width: `${calculateCompletion}%` }}
           ></div>
         </div>
       </div>
@@ -330,7 +353,15 @@ export function CandidateProfileDisplay({
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison for memo - only re-render if props actually change
+  return (
+    prevProps.className === nextProps.className &&
+    prevProps.showEditMode === nextProps.showEditMode &&
+    prevProps.onProfileUpdate === nextProps.onProfileUpdate &&
+    prevProps.onExport === nextProps.onExport
+  );
+});
 
 // Overview Tab Component
 function OverviewTab({

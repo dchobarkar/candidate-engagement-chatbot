@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, memo } from "react";
 import { ChatMessage, MessageRole, MessageStatus } from "../lib/types";
 import { format } from "date-fns";
 import { LoadingSpinner } from "./LoadingSpinner";
@@ -12,7 +12,7 @@ interface MessageBubbleProps {
   className?: string;
 }
 
-export function MessageBubble({
+export const MessageBubble = memo(function MessageBubble({
   message,
   isOwnMessage,
   onRetry,
@@ -218,11 +218,12 @@ export function MessageBubble({
 
   // Handle long content with expand/collapse
   const [isExpanded, setIsExpanded] = useState(false);
-  const shouldTruncate = message.content.length > 300;
-  const displayContent =
-    shouldTruncate && !isExpanded
+  const shouldTruncate = useMemo(() => message.content.length > 300, [message.content.length]);
+  const displayContent = useMemo(() => {
+    return shouldTruncate && !isExpanded
       ? message.content.substring(0, 300) + "..."
       : message.content;
+  }, [message.content, shouldTruncate, isExpanded]);
 
   return (
     <div
@@ -393,7 +394,16 @@ export function MessageBubble({
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function for memo
+  return (
+    prevProps.message.id === nextProps.message.id &&
+    prevProps.message.content === nextProps.message.content &&
+    prevProps.message.status === nextProps.message.status &&
+    prevProps.isOwnMessage === nextProps.isOwnMessage &&
+    prevProps.className === nextProps.className
+  );
+});
 
 // Specialized message bubble components for different types
 export function SystemMessage({
