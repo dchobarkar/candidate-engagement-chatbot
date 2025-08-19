@@ -641,7 +641,7 @@ function ExperienceTab({
                   <p className="text-sm text-gray-600">{exp.company}</p>
                   <p className="text-xs text-gray-500">
                     {exp.startDate && format(new Date(exp.startDate), 'MMM yyyy')} - 
-                    {exp.endDate ? format(new Date(exp.endDate), ' MMM yyyy' : 'Present')}
+                    {exp.endDate ? format(new Date(exp.endDate), ' MMM yyyy') : 'Present'}
                   </p>
                 </div>
                 <button
@@ -714,7 +714,7 @@ function EducationTab({
                   <p className="text-sm text-gray-600">{edu.institution}</p>
                   <p className="text-xs text-gray-500">
                     {edu.startDate && format(new Date(edu.startDate), 'yyyy')} - 
-                    {edu.endDate ? format(new Date(edu.endDate), ' yyyy' : 'Present')}
+                    {edu.endDate ? format(new Date(edu.endDate), ' yyyy') : 'Present'}
                   </p>
                 </div>
                 <button
