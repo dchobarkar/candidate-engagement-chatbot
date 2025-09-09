@@ -1,15 +1,9 @@
-@tailwind utilities;
 @import "tailwindcss";
 
 @import "./styles/utilities.css";
 
-/* Import Google Fonts */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap");
-
-/* CSS Custom Properties for theming */
 :root {
-  /* Light mode colors */
+  /* Primary colors */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
   --color-primary-200: #bfdbfe;
@@ -22,6 +16,7 @@
   --color-primary-900: #1e3a8a;
   --color-primary-950: #172554;
 
+  /* Secondary colors */
   --color-secondary-50: #f8fafc;
   --color-secondary-100: #f1f5f9;
   --color-secondary-200: #e2e8f0;
@@ -34,41 +29,16 @@
   --color-secondary-900: #0f172a;
   --color-secondary-950: #020617;
 
+  /* Semantic colors */
   --color-success-50: #f0fdf4;
-  --color-success-100: #dcfce7;
-  --color-success-200: #bbf7d0;
-  --color-success-300: #86efac;
-  --color-success-400: #4ade80;
   --color-success-500: #22c55e;
   --color-success-600: #16a34a;
-  --color-success-700: #15803d;
-  --color-success-800: #166534;
-  --color-success-900: #14532d;
-  --color-success-950: #052e16;
-
   --color-warning-50: #fffbeb;
-  --color-warning-100: #fef3c7;
-  --color-warning-200: #fde68a;
-  --color-warning-300: #fcd34d;
-  --color-warning-400: #fbbf24;
   --color-warning-500: #f59e0b;
   --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
-  --color-warning-800: #92400e;
-  --color-warning-900: #78350f;
-  --color-warning-950: #451a03;
-
   --color-error-50: #fef2f2;
-  --color-error-100: #fee2e2;
-  --color-error-200: #fecaca;
-  --color-error-300: #fca5a5;
-  --color-error-400: #f87171;
   --color-error-500: #ef4444;
   --color-error-600: #dc2626;
-  --color-error-700: #b91c1c;
-  --color-error-800: #991b1b;
-  --color-error-900: #7f1d1d;
-  --color-error-950: #450a0a;
 
   /* Chat-specific colors */
   --color-chat-user: #3b82f6;
@@ -163,30 +133,26 @@
   --color-secondary-950: #f8fafc;
 }
 
-/* Base styles */
 @layer base {
   * {
-    @apply border-border;
+    @apply border-gray-200;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gray-50 text-gray-900;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
   }
 
-  /* Focus styles */
   *:focus-visible {
-    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-background;
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-white;
   }
 
-  /* Selection styles */
   ::selection {
-    @apply bg-primary-100 text-primary-900;
+    @apply bg-blue-100 text-blue-900;
   }
 
   /* Scrollbar styles */
@@ -203,13 +169,12 @@
     @apply bg-gray-300 rounded hover:bg-gray-400 transition-colors;
   }
 
-  /* Custom scrollbar for Firefox */
   * {
     scrollbar-width: thin;
     scrollbar-color: rgb(156 163 175) transparent;
   }
 
-  /* Typography improvements */
+  /* Typography */
   h1,
   h2,
   h3,
@@ -247,17 +212,14 @@
     @apply leading-relaxed;
   }
 
-  /* Link styles */
   a {
-    @apply text-primary-600 hover:text-primary-700 transition-colors;
+    @apply text-blue-600 hover:text-blue-700 transition-colors;
   }
 
-  /* Button base styles */
   button {
     @apply transition-all duration-200;
   }
 
-  /* Input base styles */
   input,
   textarea,
   select {
@@ -265,7 +227,6 @@
   }
 }
 
-/* Component styles */
 @layer components {
   /* Chat message animations */
   .message-enter {
@@ -299,15 +260,15 @@
 
   /* Profile confidence indicators */
   .confidence-high {
-    @apply text-success-600 bg-success-50 border-success-200;
+    @apply text-green-600 bg-green-50 border-green-200;
   }
 
   .confidence-medium {
-    @apply text-warning-600 bg-warning-50 border-warning-200;
+    @apply text-yellow-600 bg-yellow-50 border-yellow-200;
   }
 
   .confidence-low {
-    @apply text-error-600 bg-error-50 border-error-200;
+    @apply text-red-600 bg-red-50 border-red-200;
   }
 
   .confidence-unknown {
@@ -316,15 +277,15 @@
 
   /* Job type badges */
   .job-remote {
-    @apply bg-success-100 text-success-800 border-success-200;
+    @apply bg-green-100 text-green-800 border-green-200;
   }
 
   .job-hybrid {
-    @apply bg-warning-100 text-warning-800 border-warning-200;
+    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
   }
 
   .job-onsite {
-    @apply bg-primary-100 text-primary-800 border-primary-200;
+    @apply bg-blue-100 text-blue-800 border-blue-200;
   }
 
   .job-fulltime {
@@ -344,10 +305,6 @@
     @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
 
-  .card-hover:hover {
-    transform: translateY(-4px);
-  }
-
   /* Button hover effects */
   .btn-hover {
     @apply transition-all duration-200 hover:scale-105 active:scale-95;
@@ -355,7 +312,7 @@
 
   /* Input focus effects */
   .input-focus {
-    @apply transition-all duration-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+    @apply transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
   }
 
   /* Loading skeleton */
@@ -365,23 +322,23 @@
 
   /* Gradient backgrounds */
   .gradient-primary {
-    @apply bg-gradient-to-r from-primary-500 to-primary-600;
+    @apply bg-gradient-to-r from-blue-500 to-blue-600;
   }
 
   .gradient-secondary {
-    @apply bg-gradient-to-r from-secondary-500 to-secondary-600;
+    @apply bg-gradient-to-r from-slate-500 to-slate-600;
   }
 
   .gradient-success {
-    @apply bg-gradient-to-r from-success-500 to-success-600;
+    @apply bg-gradient-to-r from-green-500 to-green-600;
   }
 
   .gradient-warning {
-    @apply bg-gradient-to-r from-warning-500 to-warning-600;
+    @apply bg-gradient-to-r from-yellow-500 to-yellow-600;
   }
 
   .gradient-error {
-    @apply bg-gradient-to-r from-error-500 to-error-600;
+    @apply bg-gradient-to-r from-red-500 to-red-600;
   }
 
   /* Glass morphism effect */
@@ -392,63 +349,28 @@
   .glass-dark {
     @apply bg-gray-900/80 backdrop-blur-md border border-gray-700/20 shadow-lg;
   }
-
-  /* Floating animation */
-  .float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  /* Shimmer effect */
-  .shimmer {
-    @apply relative overflow-hidden;
-  }
-
-  .shimmer::before {
-    content: "";
-    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent;
-    animation: shimmer 2s infinite;
-  }
-
-  /* Pulse glow effect */
-  .pulse-glow {
-    @apply animate-pulse;
-    box-shadow: 0 0 20px currentColor;
-  }
-
-  /* Border gradient */
-  .border-gradient {
-    @apply relative;
-  }
-
-  .border-gradient::before {
-    content: "";
-    @apply absolute inset-0 rounded-lg p-[2px] bg-gradient-to-r from-primary-500 to-secondary-500;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-  }
 }
 
-/* Utility styles */
 @layer utilities {
   /* Text gradients */
   .text-gradient-primary {
-    @apply bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent;
   }
 
   .text-gradient-secondary {
-    @apply bg-gradient-to-r from-secondary-500 to-secondary-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-slate-500 to-slate-600 bg-clip-text text-transparent;
   }
 
   .text-gradient-success {
-    @apply bg-gradient-to-r from-success-500 to-success-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent;
   }
 
   .text-gradient-warning {
-    @apply bg-gradient-to-r from-warning-500 to-warning-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent;
   }
 
   .text-gradient-error {
-    @apply bg-gradient-to-r from-error-500 to-error-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent;
   }
 
   /* Background patterns */
@@ -491,19 +413,6 @@
     box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
   }
 
-  /* Custom animations */
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  .animate-shimmer {
-    animation: shimmer 2s linear infinite;
-  }
-
-  .animate-gradient {
-    animation: gradient 3s ease infinite;
-  }
-
   /* Responsive utilities */
   .container-responsive {
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
@@ -531,22 +440,13 @@
   }
 
   .focus-visible {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
-  }
-
-  /* Print utilities */
-  @media print {
-    .no-print {
-      display: none !important;
-    }
-
-    .print-break {
-      page-break-before: always;
-    }
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   }
 }
 
-/* Dark mode overrides */
+/* Media Queries & Accessibility */
+
+/* Dark mode support */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
