@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, memo } from "react";
-import { ChatMessage, MessageRole, MessageStatus } from "../lib/types";
 import { format } from "date-fns";
+
+import { ChatMessage, MessageRole } from "../lib/types";
 import { LoadingSpinner } from "./LoadingSpinner";
 
 interface MessageBubbleProps {
@@ -12,245 +13,249 @@ interface MessageBubbleProps {
   className?: string;
 }
 
-export const MessageBubble = memo(function MessageBubble({
-  message,
-  isOwnMessage,
-  onRetry,
-  className = "",
-}: MessageBubbleProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [showTimestamp, setShowTimestamp] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+export const MessageBubble = memo(
+  function MessageBubble({
+    message,
+    isOwnMessage,
+    onRetry,
+    className = "",
+  }: MessageBubbleProps) {
+    const [isVisible, setIsVisible] = useState(false);
+    const [showTimestamp, setShowTimestamp] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
 
-  // Animation on mount
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    useEffect(() => {
+      const timer = setTimeout(() => setIsVisible(true), 100);
+      return () => clearTimeout(timer);
+    }, []);
 
-  // Show timestamp on hover
-  const handleMouseEnter = () => {
-    setShowTimestamp(true);
-    setIsHovered(true);
-  };
+    // Show timestamp on hover
+    const handleMouseEnter = () => {
+      setShowTimestamp(true);
+      setIsHovered(true);
+    };
 
-  const handleMouseLeave = () => {
-    setShowTimestamp(false);
-    setIsHovered(false);
-  };
+    const handleMouseLeave = () => {
+      setShowTimestamp(false);
+      setIsHovered(false);
+    };
 
-  // Get message status icon and color
-  const getStatusIndicator = () => {
-    switch (message.status) {
-      case "sending":
-        return (
-          <div className="flex items-center space-x-1">
-            <LoadingSpinner size="xs" />
-            <span className="text-xs text-gray-500">Sending...</span>
-          </div>
-        );
-      case "sent":
-        return (
-          <div className="flex items-center space-x-1">
-            <svg
-              className="w-3 h-3 text-blue-500"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-xs text-gray-400">Sent</span>
-          </div>
-        );
-      case "delivered":
-        return (
-          <div className="flex items-center space-x-1">
-            <svg
-              className="w-3 h-3 text-blue-500"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path
-                fillRule="evenodd"
-                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-xs text-gray-400">Delivered</span>
-          </div>
-        );
-      case "read":
-        return (
-          <div className="flex items-center space-x-1">
-            <svg
-              className="w-3 h-3 text-blue-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-              <path
-                fillRule="evenodd"
-                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-xs text-blue-600">Read</span>
-          </div>
-        );
-      case "error":
-        return (
-          <div className="flex items-center space-x-1">
-            <svg
-              className="w-3 h-3 text-red-500"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-xs text-red-500">Failed</span>
-            {onRetry && (
-              <button
-                onClick={onRetry}
-                className="text-xs text-red-600 hover:text-red-700 underline ml-1"
+    // Get message status icon and color
+    const getStatusIndicator = () => {
+      switch (message.status) {
+        case "sending":
+          return (
+            <div className="flex items-center space-x-1">
+              <LoadingSpinner size="xs" />
+              <span className="text-xs text-gray-500">Sending...</span>
+            </div>
+          );
+
+        case "sent":
+          return (
+            <div className="flex items-center space-x-1">
+              <svg
+                className="w-3 h-3 text-blue-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
               >
-                Retry
-              </button>
-            )}
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-xs text-gray-400">Sent</span>
+            </div>
+          );
+
+        case "delivered":
+          return (
+            <div className="flex items-center space-x-1">
+              <svg
+                className="w-3 h-3 text-blue-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fillRule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-xs text-gray-400">Delivered</span>
+            </div>
+          );
+
+        case "read":
+          return (
+            <div className="flex items-center space-x-1">
+              <svg
+                className="w-3 h-3 text-blue-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fillRule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-xs text-blue-600">Read</span>
+            </div>
+          );
+
+        case "error":
+          return (
+            <div className="flex items-center space-x-1">
+              <svg
+                className="w-3 h-3 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-xs text-red-500">Failed</span>
+              {onRetry && (
+                <button
+                  onClick={onRetry}
+                  className="text-xs text-red-600 hover:text-red-700 underline ml-1"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          );
+
+        default:
+          return null;
+      }
+    };
+
+    // Get message type styling
+    const getMessageTypeStyling = () => {
+      if (message.type === "system")
+        return "bg-gray-100 text-gray-700 border-gray-200";
+      if (message.type === "error")
+        return "bg-red-50 text-red-800 border-red-200";
+      if (message.type === "success")
+        return "bg-green-50 text-green-800 border-green-200";
+      if (message.type === "warning")
+        return "bg-yellow-50 text-yellow-800 border-yellow-200";
+      return "";
+    };
+
+    // Get avatar for different message types
+    const getAvatar = () => {
+      if (isOwnMessage) {
+        return (
+          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+            You
           </div>
         );
-      default:
-        return null;
-    }
-  };
+      }
 
-  // Get message type styling
-  const getMessageTypeStyling = () => {
-    if (message.type === "system") {
-      return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-    if (message.type === "error") {
-      return "bg-red-50 text-red-800 border-red-200";
-    }
-    if (message.type === "success") {
-      return "bg-green-50 text-green-800 border-green-200";
-    }
-    if (message.type === "warning") {
-      return "bg-yellow-50 text-yellow-800 border-yellow-200";
-    }
-    return "";
-  };
+      if (message.role === MessageRole.ASSISTANT) {
+        return (
+          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+            AI
+          </div>
+        );
+      }
 
-  // Get avatar for different message types
-  const getAvatar = () => {
-    if (isOwnMessage) {
+      if (message.role === MessageRole.SYSTEM) {
+        return (
+          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm">
+            ⚙️
+          </div>
+        );
+      }
+
       return (
-        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-          You
+        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm">
+          ?
         </div>
       );
-    }
+    };
 
-    if (message.role === MessageRole.ASSISTANT) {
-      return (
-        <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-          AI
-        </div>
-      );
-    }
+    // Get message bubble styling
+    const getBubbleStyling = () => {
+      const baseClasses =
+        "rounded-2xl px-4 py-3 max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl";
 
-    if (message.role === MessageRole.SYSTEM) {
-      return (
-        <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm">
-          ⚙️
-        </div>
-      );
-    }
+      if (isOwnMessage) {
+        return `${baseClasses} bg-blue-600 text-white ml-auto`;
+      }
+
+      if (message.role === MessageRole.SYSTEM) {
+        return `${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`;
+      }
+
+      if (message.role === MessageRole.ASSISTANT) {
+        return `${baseClasses} bg-white text-gray-900 border border-gray-200 shadow-sm`;
+      }
+
+      return `${baseClasses} bg-gray-100 text-gray-900`;
+    };
+
+    // Format timestamp
+    const formatTimestamp = (date: Date) => {
+      const now = new Date();
+      const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+      if (diffInHours < 24) {
+        return format(date, "HH:mm");
+      } else if (diffInHours < 48) {
+        return `Yesterday ${format(date, "HH:mm")}`;
+      } else {
+        return format(date, "MMM d, HH:mm");
+      }
+    };
+
+    // Handle long content with expand/collapse
+    const [isExpanded, setIsExpanded] = useState(false);
+    const shouldTruncate = useMemo(
+      () => message.content.length > 300,
+      [message.content.length]
+    );
+    const displayContent = useMemo(() => {
+      return shouldTruncate && !isExpanded
+        ? message.content.substring(0, 300) + "..."
+        : message.content;
+    }, [message.content, shouldTruncate, isExpanded]);
 
     return (
-      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm">
-        ?
-      </div>
-    );
-  };
-
-  // Get message bubble styling
-  const getBubbleStyling = () => {
-    const baseClasses =
-      "rounded-2xl px-4 py-3 max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl";
-
-    if (isOwnMessage) {
-      return `${baseClasses} bg-blue-600 text-white ml-auto`;
-    }
-
-    if (message.role === MessageRole.SYSTEM) {
-      return `${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`;
-    }
-
-    if (message.role === MessageRole.ASSISTANT) {
-      return `${baseClasses} bg-white text-gray-900 border border-gray-200 shadow-sm`;
-    }
-
-    return `${baseClasses} bg-gray-100 text-gray-900`;
-  };
-
-  // Format timestamp
-  const formatTimestamp = (date: Date) => {
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 24) {
-      return format(date, "HH:mm");
-    } else if (diffInHours < 48) {
-      return `Yesterday ${format(date, "HH:mm")}`;
-    } else {
-      return format(date, "MMM d, HH:mm");
-    }
-  };
-
-  // Handle long content with expand/collapse
-  const [isExpanded, setIsExpanded] = useState(false);
-  const shouldTruncate = useMemo(() => message.content.length > 300, [message.content.length]);
-  const displayContent = useMemo(() => {
-    return shouldTruncate && !isExpanded
-      ? message.content.substring(0, 300) + "..."
-      : message.content;
-  }, [message.content, shouldTruncate, isExpanded]);
-
-  return (
-    <div
-      className={`flex ${
-        isOwnMessage ? "justify-end" : "justify-start"
-      } mb-4 group ${className}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Avatar and Message Container */}
       <div
-        className={`flex items-start space-x-3 ${
-          isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
-        }`}
+        className={`flex ${
+          isOwnMessage ? "justify-end" : "justify-start"
+        } mb-4 group ${className}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        {/* Avatar */}
-        {!isOwnMessage && <div className="flex-shrink-0">{getAvatar()}</div>}
-
-        {/* Message Bubble */}
+        {/* Avatar and Message Container */}
         <div
-          className={`flex flex-col ${
-            isOwnMessage ? "items-end" : "items-start"
+          className={`flex items-start space-x-3 ${
+            isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
           }`}
         >
-          {/* Message Content */}
+          {/* Avatar */}
+          {!isOwnMessage && <div className="flex-shrink-0">{getAvatar()}</div>}
+
+          {/* Message Bubble */}
           <div
-            className={`
+            className={`flex flex-col ${
+              isOwnMessage ? "items-end" : "items-start"
+            }`}
+          >
+            {/* Message Content */}
+            <div
+              className={`
               ${getBubbleStyling()}
               ${getMessageTypeStyling()}
               transition-all duration-300 ease-out
@@ -263,13 +268,13 @@ export const MessageBubble = memo(function MessageBubble({
               hover:shadow-md
               cursor-pointer
             `}
-            onClick={() => shouldTruncate && setIsExpanded(!isExpanded)}
-          >
-            {/* Message Type Badge */}
-            {message.type && message.type !== "user" && (
-              <div className="mb-2">
-                <span
-                  className={`
+              onClick={() => shouldTruncate && setIsExpanded(!isExpanded)}
+            >
+              {/* Message Type Badge */}
+              {message.type && message.type !== "user" && (
+                <div className="mb-2">
+                  <span
+                    className={`
                   inline-block px-2 py-1 text-xs font-medium rounded-full
                   ${
                     message.type === "system" ? "bg-gray-200 text-gray-700" : ""
@@ -286,124 +291,127 @@ export const MessageBubble = memo(function MessageBubble({
                       : ""
                   }
                 `}
+                  >
+                    {message.type.charAt(0).toUpperCase() +
+                      message.type.slice(1)}
+                  </span>
+                </div>
+              )}
+
+              {/* Message Text */}
+              <div className="whitespace-pre-wrap break-words leading-relaxed">
+                {displayContent}
+              </div>
+
+              {/* Expand/Collapse Button */}
+              {shouldTruncate && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(!isExpanded);
+                  }}
+                  className="mt-2 text-xs font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
                 >
-                  {message.type.charAt(0).toUpperCase() + message.type.slice(1)}
+                  {isExpanded ? "Show less" : "Show more"}
+                </button>
+              )}
+
+              {/* Message Metadata */}
+              <div className="mt-2 flex items-center justify-between text-xs opacity-75">
+                {/* Timestamp */}
+                <span
+                  className={isOwnMessage ? "text-blue-100" : "text-gray-500"}
+                >
+                  {formatTimestamp(message.timestamp)}
                 </span>
+
+                {/* Status Indicators */}
+                {isOwnMessage && (
+                  <div className="flex items-center space-x-1">
+                    {getStatusIndicator()}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Additional Message Info */}
+            {message.metadata && (
+              <div
+                className={`mt-2 text-xs text-gray-500 ${
+                  isOwnMessage ? "text-right" : "text-left"
+                }`}
+              >
+                {message.metadata.confidence && (
+                  <span className="inline-block bg-gray-100 px-2 py-1 rounded-full mr-2">
+                    Confidence: {Math.round(message.metadata.confidence * 100)}%
+                  </span>
+                )}
+                {message.metadata.extractedInfo && (
+                  <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    Info extracted
+                  </span>
+                )}
               </div>
             )}
 
-            {/* Message Text */}
-            <div className="whitespace-pre-wrap break-words leading-relaxed">
-              {displayContent}
-            </div>
-
-            {/* Expand/Collapse Button */}
-            {shouldTruncate && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsExpanded(!isExpanded);
-                }}
-                className="mt-2 text-xs font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
-              >
-                {isExpanded ? "Show less" : "Show more"}
-              </button>
-            )}
-
-            {/* Message Metadata */}
-            <div className="mt-2 flex items-center justify-between text-xs opacity-75">
-              {/* Timestamp */}
-              <span
-                className={isOwnMessage ? "text-blue-100" : "text-gray-500"}
-              >
-                {formatTimestamp(message.timestamp)}
-              </span>
-
-              {/* Status Indicators */}
-              {isOwnMessage && (
-                <div className="flex items-center space-x-1">
-                  {getStatusIndicator()}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Additional Message Info */}
-          {message.metadata && (
-            <div
-              className={`mt-2 text-xs text-gray-500 ${
-                isOwnMessage ? "text-right" : "text-left"
-              }`}
-            >
-              {message.metadata.confidence && (
-                <span className="inline-block bg-gray-100 px-2 py-1 rounded-full mr-2">
-                  Confidence: {Math.round(message.metadata.confidence * 100)}%
-                </span>
-              )}
-              {message.metadata.extractedInfo && (
-                <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  Info extracted
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Quick Actions */}
-          {isHovered && (
-            <div
-              className={`
+            {/* Quick Actions */}
+            {isHovered && (
+              <div
+                className={`
               mt-2 flex items-center space-x-2 text-xs
               ${isOwnMessage ? "justify-end" : "justify-start"}
               transition-opacity duration-200
             `}
-            >
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                Copy
-              </button>
-              {message.role === MessageRole.ASSISTANT && (
+              >
                 <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                  Like
+                  Copy
                 </button>
-              )}
-              {message.role === MessageRole.ASSISTANT && (
-                <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                  Dislike
-                </button>
-              )}
-            </div>
-          )}
+                {message.role === MessageRole.ASSISTANT && (
+                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                    Like
+                  </button>
+                )}
+                {message.role === MessageRole.ASSISTANT && (
+                  <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                    Dislike
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Avatar for own messages */}
+          {isOwnMessage && <div className="flex-shrink-0">{getAvatar()}</div>}
         </div>
 
-        {/* Avatar for own messages */}
-        {isOwnMessage && <div className="flex-shrink-0">{getAvatar()}</div>}
-      </div>
-
-      {/* Timestamp Tooltip */}
-      {showTimestamp && (
-        <div
-          className={`
+        {/* Timestamp Tooltip */}
+        {showTimestamp && (
+          <div
+            className={`
           absolute z-10 px-2 py-1 text-xs text-white bg-gray-900 rounded
           ${isOwnMessage ? "right-0" : "left-0"}
           transform -translate-y-full -translate-x-1/2
           opacity-90
         `}
-        >
-          {format(message.timestamp, "MMM d, yyyy HH:mm:ss")}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-        </div>
-      )}
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison function for memo
-  return (
-    prevProps.message.id === nextProps.message.id &&
-    prevProps.message.content === nextProps.message.content &&
-    prevProps.message.status === nextProps.message.status &&
-    prevProps.isOwnMessage === nextProps.isOwnMessage &&
-    prevProps.className === nextProps.className
-  );
-});
+          >
+            {format(message.timestamp, "MMM d, yyyy HH:mm:ss")}
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+        )}
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison function for memo
+    return (
+      prevProps.message.id === nextProps.message.id &&
+      prevProps.message.content === nextProps.message.content &&
+      prevProps.message.status === nextProps.message.status &&
+      prevProps.isOwnMessage === nextProps.isOwnMessage &&
+      prevProps.className === nextProps.className
+    );
+  }
+);
 
 // Specialized message bubble components for different types
 export function SystemMessage({

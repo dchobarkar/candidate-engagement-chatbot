@@ -67,6 +67,8 @@ export interface CandidateProfile {
 }
 
 export interface ChatMessage {
+  type: string;
+  status: any;
   id: string;
   content: string;
   role: "user" | "assistant" | "system";
