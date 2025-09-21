@@ -1,5 +1,11 @@
+import { ReactNode } from "react";
+
 // CORE INTERFACES
 export interface JobDescription {
+  experienceDetails: any;
+  education: any;
+  postedDate: any;
+  summary: ReactNode;
   id: string;
   title: string;
   company: string;
