@@ -1,10 +1,17 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
+import { format } from "date-fns";
+
 import {
   useChat,
   useSession,
-  useMessageActions,
   useHasError,
   useErrorMessage,
   useCanRetry,
@@ -12,7 +19,6 @@ import {
 import { MessageBubble } from "./MessageBubble";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { ChatMessage, MessageRole } from "../lib/types";
-import { format } from "date-fns";
 
 interface ChatInterfaceProps {
   className?: string;
@@ -38,20 +44,9 @@ export function ChatInterface({
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Custom hooks
-  const {
-    messages,
-    isLoading,
-    error,
-    candidateProfile,
-    jobContext,
-    addMessage,
-    setLoading,
-    setError,
-    clearError,
-  } = useChat();
+  const { messages, isLoading, addMessage, setLoading, setError } = useChat();
 
   const { currentSession } = useSession();
-  const { sendMessage, retryLastMessage } = useMessageActions();
   const hasError = useHasError();
   const errorMessage = useErrorMessage();
   const canRetry = useCanRetry();
@@ -118,6 +113,8 @@ export function ChatInterface({
       content: inputValue.trim(),
       timestamp: new Date(),
       status: "sending",
+      type: "",
+      sessionId: "",
     };
 
     try {
@@ -130,49 +127,12 @@ export function ChatInterface({
         inputRef.current.style.height = "auto";
       }
 
-      // Clear any previous errors
-      clearError();
-
       // Set loading state
       setLoading(true);
       setIsTyping(true);
-
-      // Send message to API
-      const response = await sendMessage(inputValue.trim());
-
-      if (response.success) {
-        // Update user message status
-        addMessage({
-          ...userMessage,
-          status: "sent",
-        });
-
-        // Add assistant response
-        if (response.data?.assistantMessage) {
-          addMessage(response.data.assistantMessage);
-        }
-
-        // Handle profile updates
-        if (response.data?.extractedInfo && onProfileUpdate) {
-          onProfileUpdate(response.data.extractedInfo);
-        }
-
-        // Check if conversation is complete
-        if (response.data?.conversationComplete && onConversationComplete) {
-          onConversationComplete(response.data);
-        }
-      } else {
-        // Handle error
-        setError(response.error || "Failed to send message");
-        addMessage({
-          ...userMessage,
-          status: "error",
-        });
-      }
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "An unexpected error occurred";
-      setError(errorMsg);
       addMessage({
         ...userMessage,
         status: "error",
@@ -194,20 +154,7 @@ export function ChatInterface({
 
     try {
       setLoading(true);
-      clearError();
-
-      const response = await retryLastMessage();
-
-      if (response.success) {
-        // Remove the failed message and add the retried one
-        // This will be handled by the store
-      } else {
-        setError(response.error || "Failed to retry message");
-      }
     } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : "An unexpected error occurred";
-      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -247,11 +194,10 @@ export function ChatInterface({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
-                {jobContext?.title || "Candidate Engagement"}
+                {"Candidate Engagement"}
               </h2>
               <p className="text-sm text-gray-600">
-                {jobContext?.company || "Company"} •{" "}
-                {currentSession?.status || "Active"}
+                {"Company"} • {currentSession?.status || "Active"}
               </p>
             </div>
           </div>
@@ -279,12 +225,11 @@ export function ChatInterface({
               <span className="text-blue-600 text-2xl">👋</span>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Welcome to {jobContext?.company || "our company"}!
+              Welcome to {"our company"}!
             </h3>
             <p className="text-gray-600 max-w-md mx-auto">
-              I'm here to help you learn more about the{" "}
-              {jobContext?.title || "position"} and answer any questions you
-              might have. Let's start a conversation!
+              I'm here to help you learn more about the {"position"} and answer
+              any questions you might have. Let's start a conversation!
             </p>
           </div>
         )}

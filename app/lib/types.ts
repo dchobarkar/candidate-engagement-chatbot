@@ -89,6 +89,7 @@ export interface ChatMessage {
 }
 
 export interface ConversationSession {
+  lastActivity: any;
   id: string;
   messages: ChatMessage[];
   candidateProfile: CandidateProfile;
