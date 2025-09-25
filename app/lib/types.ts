@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { JSX, ReactNode } from "react";
 
 // CORE INTERFACES
 export interface JobDescription {
@@ -32,11 +32,14 @@ export interface JobDescription {
 }
 
 export interface CandidateProfile {
+  metadata: any;
   id: string;
   name?: string;
   email?: string;
   phone?: string;
   experience: {
+    length: number;
+    map(arg0: (exp: any, index: any) => JSX.Element): ReactNode;
     years: number;
     months: number;
     description?: string;
@@ -47,6 +50,9 @@ export interface CandidateProfile {
     confidence: number; // 0-1
   }>;
   education: Array<{
+    startDate: string;
+    endDate: any;
+    description: ReactNode;
     degree: string;
     institution: string;
     graduationYear?: number;
