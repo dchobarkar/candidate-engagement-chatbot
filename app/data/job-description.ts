@@ -1,8 +1,5 @@
 import { JobDescription } from "../lib/types";
 
-// Comprehensive job description for a Senior Software Engineer position
-// This data is structured for easy access by conversation logic and enables meaningful conversations
-
 export const jobDescription: JobDescription = {
   id: "se-2024-001",
   title: "Senior Software Engineer",
@@ -78,6 +75,10 @@ export const jobDescription: JobDescription = {
   remote: true,
   createdAt: new Date("2024-01-15"),
   updatedAt: new Date("2024-01-15"),
+  experienceDetails: undefined,
+  education: undefined,
+  postedDate: undefined,
+  summary: undefined,
 };
 
 // Additional job data for different positions (for future expansion)

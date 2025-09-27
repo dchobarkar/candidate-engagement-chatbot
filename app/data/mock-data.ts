@@ -1,3 +1,5 @@
+import { JSX, ReactNode } from "react";
+
 import { jobDescription } from "./job-description";
 import {
   CandidateProfile,
@@ -6,7 +8,6 @@ import {
   SkillLevel,
 } from "../lib/types";
 
-// SAMPLE CANDIDATE PROFILES
 export const sampleCandidateProfiles: CandidateProfile[] = [
   {
     id: "candidate-001",
@@ -17,6 +18,10 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       years: 6,
       months: 8,
       description: "Full-stack development with focus on React and Node.js",
+      length: 0,
+      map: function (): ReactNode {
+        throw new Error("Function not implemented.");
+      },
     },
     skills: [
       { name: "JavaScript", level: SkillLevel.EXPERT, confidence: 0.95 },
@@ -34,6 +39,9 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
         institution: "Stanford University",
         graduationYear: 2018,
         gpa: 3.8,
+        startDate: "",
+        endDate: undefined,
+        description: undefined,
       },
     ],
     interests: [
@@ -59,6 +67,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
     },
     confidence: 0.85,
     lastUpdated: new Date("2024-01-20"),
+    metadata: undefined,
   },
   {
     id: "candidate-002",
@@ -69,6 +78,10 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       years: 4,
       months: 3,
       description: "Frontend specialist with strong UI/UX skills",
+      length: 0,
+      map: function (): ReactNode {
+        throw new Error("Function not implemented.");
+      },
     },
     skills: [
       { name: "JavaScript", level: SkillLevel.ADVANCED, confidence: 0.88 },
@@ -84,6 +97,9 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
         institution: "UC Berkeley",
         graduationYear: 2020,
         gpa: 3.6,
+        startDate: "",
+        endDate: undefined,
+        description: undefined,
       },
     ],
     interests: ["UI/UX Design", "Animation", "Accessibility", "Performance"],
@@ -104,6 +120,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
     },
     confidence: 0.72,
     lastUpdated: new Date("2024-01-18"),
+    metadata: undefined,
   },
   {
     id: "candidate-003",
@@ -114,6 +131,10 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       years: 8,
       months: 0,
       description: "Senior backend engineer with microservices expertise",
+      length: 0,
+      map: function (arg0: (exp: any, index: any) => JSX.Element): ReactNode {
+        throw new Error("Function not implemented.");
+      },
     },
     skills: [
       { name: "Python", level: SkillLevel.EXPERT, confidence: 0.95 },
@@ -131,6 +152,9 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
         institution: "MIT",
         graduationYear: 2016,
         gpa: 3.9,
+        startDate: "",
+        endDate: undefined,
+        description: undefined,
       },
     ],
     interests: [
@@ -156,6 +180,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
     },
     confidence: 0.95,
     lastUpdated: new Date("2024-01-22"),
+    metadata: undefined,
   },
 ];
 
@@ -358,6 +383,8 @@ export const testSessions: ConversationSession[] = [
       role: msg.role,
       timestamp: msg.timestamp,
       sessionId: "session-001",
+      type: "text",
+      status: "sent",
     })),
     candidateProfile: sampleCandidateProfiles[0],
     jobContext: jobDescription,
@@ -365,6 +392,7 @@ export const testSessions: ConversationSession[] = [
     createdAt: new Date("2024-01-20T10:00:00Z"),
     updatedAt: new Date("2024-01-20T10:01:05Z"),
     expiresAt: new Date("2024-01-27T10:00:00Z"),
+    lastActivity: undefined,
   },
   {
     id: "session-002",
@@ -375,6 +403,8 @@ export const testSessions: ConversationSession[] = [
         role: msg.role,
         timestamp: msg.timestamp,
         sessionId: "session-002",
+        type: "text",
+        status: "sent",
       })
     ),
     candidateProfile: sampleCandidateProfiles[1],
@@ -383,6 +413,7 @@ export const testSessions: ConversationSession[] = [
     createdAt: new Date("2024-01-20T11:00:00Z"),
     updatedAt: new Date("2024-01-20T11:00:35Z"),
     expiresAt: new Date("2024-01-27T11:00:00Z"),
+    lastActivity: undefined,
   },
 ];
 
@@ -417,16 +448,19 @@ export const createTestSession = (
     role: msg.role,
     timestamp: msg.timestamp,
     sessionId: `test-session-${Date.now()}`,
+    type: "text",
+    status: "sent",
   }));
 
   return {
     id: `test-session-${Date.now()}`,
-    messages,
+    messages: [],
     candidateProfile: candidate,
     jobContext: jobDescription,
     status: "active",
     createdAt: new Date(),
     updatedAt: new Date(),
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    lastActivity: undefined,
   };
 };
