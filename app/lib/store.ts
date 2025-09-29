@@ -20,6 +20,7 @@ import {
   markSessionAsCompleted,
   markSessionAsExpired,
 } from "./session-utils";
+import { JSX, ReactNode } from "react";
 
 // STORE INTERFACE
 interface ChatStore extends ChatState, ChatActions {
@@ -44,6 +45,10 @@ const initialCandidateProfile: CandidateProfile = {
     years: 0,
     months: 0,
     description: "",
+    length: 0,
+    map: function (arg0: (exp: any, index: any) => JSX.Element): ReactNode {
+      throw new Error("Function not implemented.");
+    },
   },
   skills: [],
   education: [],
@@ -65,13 +70,15 @@ const initialCandidateProfile: CandidateProfile = {
   },
   confidence: 0,
   lastUpdated: new Date(),
+  metadata: undefined,
 };
 
 const initialError: ApiError = {
-  code: "",
+  code: unknown,
   message: "",
   details: undefined,
   timestamp: new Date(),
+  severity: "low",
 };
 
 // STORE IMPLEMENTATION
@@ -244,6 +251,7 @@ export const useChatStore = create<ChatStore>()(
             code: "SESSION_EXPIRED",
             message: "Session has expired",
             timestamp: new Date(),
+            severity: "low",
           });
           return;
         }
@@ -259,6 +267,8 @@ export const useChatStore = create<ChatStore>()(
             role: MessageRole.USER,
             timestamp: new Date(),
             sessionId: currentSession.id,
+            type: "",
+            status: undefined,
           };
 
           // Add user message to store
@@ -294,6 +304,8 @@ export const useChatStore = create<ChatStore>()(
               confidence: data.confidence,
               extractedInfo: data.extractedInfo,
             },
+            type: "",
+            status: undefined,
           };
 
           // Add assistant message to store
@@ -406,6 +418,7 @@ export const useChatStore = create<ChatStore>()(
               code: "SESSION_EXPIRED",
               message: "Session has expired",
               timestamp: new Date(),
+              severity: "low",
             },
           });
           return false;
