@@ -19,6 +19,7 @@ import {
   exportSession,
   importSession,
 } from "./session-utils";
+import { JSX, ReactNode } from "react";
 
 // SESSION MANAGER CLASS
 export class SessionManager {
@@ -55,6 +56,12 @@ export class SessionManager {
           years: 0,
           months: 0,
           description: "",
+          length: 0,
+          map: function (
+            arg0: (exp: any, index: any) => JSX.Element
+          ): ReactNode {
+            throw new Error("Function not implemented.");
+          },
         },
         skills: [],
         education: [],
@@ -76,6 +83,7 @@ export class SessionManager {
         },
         confidence: 0,
         lastUpdated: now,
+        metadata: {},
         ...candidateProfile,
       },
       jobContext: jobContext || jobDescription,
@@ -83,6 +91,7 @@ export class SessionManager {
       createdAt: now,
       updatedAt: now,
       expiresAt,
+      lastActivity: undefined,
     };
 
     this.sessions.set(sessionId, session);
@@ -115,6 +124,12 @@ export class SessionManager {
           years: 0,
           months: 0,
           description: "",
+          length: 0,
+          map: function (
+            arg0: (exp: any, index: any) => JSX.Element
+          ): ReactNode {
+            throw new Error("Function not implemented.");
+          },
         },
         skills: [],
         education: [],
@@ -136,12 +151,14 @@ export class SessionManager {
         },
         confidence: 0,
         lastUpdated: now,
+        metadata: {},
       },
       jobContext: sessionData.jobContext || jobDescription,
       status: SessionStatus.ACTIVE,
       createdAt: sessionData.createdAt || now,
       updatedAt: now,
       expiresAt: sessionData.expiresAt || expiresAt,
+      lastActivity: undefined,
     };
 
     this.sessions.set(sessionId, session);
