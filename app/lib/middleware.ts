@@ -348,7 +348,6 @@ export class MiddlewareUtils {
 
   private static getClientIP(request: NextRequest): string {
     return (
-      request.ip ||
       request.headers.get("x-forwarded-for") ||
       request.headers.get("x-real-ip") ||
       "unknown"
@@ -434,6 +433,6 @@ export const DEFAULT_RATE_LIMIT_CONFIG = {
   windowMs: 60000, // 1 minute
   maxRequests: 100, // 100 requests per minute
   keyGenerator: (request: NextRequest) => {
-    return request.ip || request.headers.get("x-forwarded-for") || "unknown";
+    return request.headers.get("x-forwarded-for") || "unknown";
   },
 };

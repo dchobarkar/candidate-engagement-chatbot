@@ -1,16 +1,10 @@
-import {
-  JobDescription,
-  CandidateProfile,
-  ConversationStage,
-  ChatMessage,
-  SkillLevel,
-} from "./types";
+import { JobDescription, CandidateProfile, ChatMessage } from "./types";
 import { Logger } from "./logger";
 
 export interface PromptContext {
   jobDescription: JobDescription;
   candidateProfile?: CandidateProfile;
-  conversationStage: ConversationStage;
+  conversationStage: Object;
   conversationHistory: ChatMessage[];
   extractedInfo: Record<string, any>;
   userIntent: string;
@@ -23,7 +17,7 @@ export interface PromptTemplate {
   description: string;
   template: string;
   variables: string[];
-  stage: ConversationStage;
+  stage: Object;
   priority: number;
   version: string;
 }
@@ -128,7 +122,10 @@ export class PromptEngine {
         optimization,
       };
     } catch (error) {
-      this.logger.error("Error generating prompt", { error, context });
+      this.logger.error("Error generating prompt", {
+        message: error instanceof Error ? error.message : String(error),
+        name: "",
+      });
       throw error;
     }
   }
