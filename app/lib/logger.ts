@@ -107,8 +107,7 @@ export class Logger {
     const method = request.method;
     const url = request.url;
     const userAgent = request.headers.get("user-agent") || "unknown";
-    const ip =
-      request.ip || request.headers.get("x-forwarded-for") || "unknown";
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
 
     this.info("Request started", {
       requestId,
