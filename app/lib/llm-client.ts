@@ -1,10 +1,6 @@
 import OpenAI from "openai";
-import {
-  ChatMessage,
-  JobDescription,
-  CandidateProfile,
-  ConversationStage,
-} from "./types";
+
+import { ChatMessage, JobDescription, CandidateProfile } from "./types";
 import { Logger } from "./logger";
 
 export interface LLMConfig {
@@ -20,7 +16,7 @@ export interface ConversationContext {
   messages: ChatMessage[];
   jobDescription: JobDescription;
   candidateProfile?: CandidateProfile;
-  stage: ConversationStage;
+  stage: unknown;
   extractedInfo: Record<string, any>;
 }
 
@@ -28,7 +24,7 @@ export interface LLMResponse {
   content: string;
   confidence: number;
   extractedData?: Record<string, any>;
-  suggestedStage?: ConversationStage;
+  suggestedStage?: unknown;
   followUpQuestions?: string[];
 }
 
@@ -113,8 +109,8 @@ Job Requirements:
 - Type: ${jobDescription.type}
 - Experience: ${jobDescription.experience} years
 - Skills: ${jobDescription.skills.join(", ")}
-- Salary: ${jobDescription.salary.min}-${jobDescription.salary.max} ${
-      jobDescription.salary.currency
+- Salary: ${jobDescription?.salary?.min}-${jobDescription?.salary?.max} ${
+      jobDescription?.salary?.currency
     }
 - Location: ${jobDescription.location}
 - Remote: ${jobDescription.remote ? "Yes" : "No"}
@@ -166,7 +162,7 @@ Response:`;
   /**
    * Get stage-specific instructions for the LLM
    */
-  private getStageSpecificInstructions(stage: ConversationStage): string {
+  private getStageSpecificInstructions(stage: unknown): string {
     switch (stage) {
       case "greeting":
         return `\nInstructions for Greeting Stage:
@@ -375,10 +371,7 @@ Response:`;
   /**
    * Suggest the next conversation stage
    */
-  private suggestNextStage(
-    content: string,
-    currentStage: ConversationStage
-  ): ConversationStage {
+  private suggestNextStage(content: string, currentStage: unknown): unknown {
     const contentLower = content.toLowerCase();
 
     // Analyze content to suggest next stage
