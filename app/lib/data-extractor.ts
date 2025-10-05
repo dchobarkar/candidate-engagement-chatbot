@@ -1,4 +1,4 @@
-import { CandidateProfile, SkillLevel, JobDescription } from "./types";
+import { SkillLevel } from "./types";
 import { Logger } from "./logger";
 
 export interface ExtractedData {
@@ -594,7 +594,7 @@ export class DataExtractor {
       lowerText.includes("architect") ||
       lowerText.includes("principal")
     ) {
-      return "expert";
+      return SkillLevel.EXPERT;
     }
 
     // Advanced level indicators
@@ -605,7 +605,7 @@ export class DataExtractor {
       lowerText.includes("extensive") ||
       lowerText.includes("deep")
     ) {
-      return "advanced";
+      return SkillLevel.ADVANCED;
     }
 
     // Intermediate level indicators
@@ -616,7 +616,7 @@ export class DataExtractor {
       lowerText.includes("familiar") ||
       lowerText.includes("comfortable")
     ) {
-      return "intermediate";
+      return SkillLevel.INTERMEDIATE;
     }
 
     // Beginner level indicators
@@ -627,11 +627,11 @@ export class DataExtractor {
       lowerText.includes("new to") ||
       lowerText.includes("just started")
     ) {
-      return "beginner";
+      return SkillLevel.BEGINNER;
     }
 
     // Default to intermediate if no clear indicators
-    return "intermediate";
+    return SkillLevel.INTERMEDIATE;
   }
 
   /**

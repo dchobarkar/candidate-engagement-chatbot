@@ -53,14 +53,17 @@ export const useCandidate = () => {
 export const useJob = () => {
   const { jobContext } = useChatStore();
 
-  const getJobById = useCallback((jobId: string) => {
-    // For now, return the current job context if ID matches
-    // In a real app, this would query a jobs database
-    if (jobContext && jobContext.id === jobId) {
-      return jobContext;
-    }
-    return null;
-  }, [jobContext]);
+  const getJobById = useCallback(
+    (jobId: string) => {
+      // For now, return the current job context if ID matches
+      // In a real app, this would query a jobs database
+      if (jobContext && jobContext.id === jobId) {
+        return jobContext;
+      }
+      return null;
+    },
+    [jobContext]
+  );
 
   return {
     jobContext,

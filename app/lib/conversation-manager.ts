@@ -2,7 +2,6 @@ import {
   ChatMessage,
   JobDescription,
   CandidateProfile,
-  ConversationStage,
   MessageRole,
   ConversationSession,
 } from "./types";
@@ -11,7 +10,8 @@ import { DataExtractor } from "./data-extractor";
 import { Logger } from "./logger";
 
 export interface ConversationState {
-  currentStage: ConversationStage;
+  stageTransitions: any;
+  currentStage: unknown;
   stageProgress: number; // 0-100
   extractedInfo: Record<string, any>;
   confidenceScores: Record<string, number>;
@@ -21,7 +21,7 @@ export interface ConversationState {
 }
 
 export interface ConversationFlow {
-  stage: ConversationStage;
+  stage: unknown;
   messages: ChatMessage[];
   extractedData: Record<string, any>;
   confidence: number;
@@ -325,7 +325,7 @@ export class ConversationManager {
    */
   private transitionToNextStage(): void {
     const currentStage = this.state.currentStage;
-    let nextStage: ConversationStage;
+    let nextStage: unknown;
 
     switch (currentStage) {
       case "greeting":
@@ -413,10 +413,7 @@ export class ConversationManager {
   /**
    * Enhance response content for specific conversation stage
    */
-  private enhanceResponseForStage(
-    content: string,
-    stage: ConversationStage
-  ): string {
+  private enhanceResponseForStage(content: string, stage: unknown): string {
     let enhancedContent = content;
 
     switch (stage) {
@@ -460,7 +457,7 @@ export class ConversationManager {
   /**
    * Generate stage-specific follow-up questions
    */
-  private generateStageSpecificQuestions(stage: ConversationStage): string[] {
+  private generateStageSpecificQuestions(stage: unknown): string[] {
     switch (stage) {
       case "greeting":
         return [
@@ -497,10 +494,7 @@ export class ConversationManager {
   /**
    * Adjust confidence score based on conversation stage
    */
-  private adjustConfidenceForStage(
-    confidence: number,
-    stage: ConversationStage
-  ): number {
+  private adjustConfidenceForStage(confidence: number, stage: unknown): number {
     let adjustedConfidence = confidence;
 
     // Boost confidence for early stages where responses are more predictable
@@ -633,11 +627,23 @@ export class ConversationManager {
     const flowEntry: ConversationFlow = {
       stage: this.state.currentStage,
       messages: [
-        { role: MessageRole.USER, content: userMessage, timestamp: new Date() },
+        {
+          role: MessageRole.USER,
+          content: userMessage,
+          timestamp: new Date(),
+          type: "",
+          status: undefined,
+          id: "",
+          sessionId: "",
+        },
         {
           role: MessageRole.ASSISTANT,
           content: response.content,
           timestamp: new Date(),
+          type: "",
+          status: undefined,
+          id: "",
+          sessionId: "",
         },
       ],
       extractedData,
@@ -804,7 +810,7 @@ export class ConversationManager {
    */
   private determineNextSteps(
     candidateFit: number,
-    currentStage: ConversationStage
+    currentStage: unknown
   ): string[] {
     const nextSteps: string[] = [];
 
@@ -886,8 +892,8 @@ export class ConversationManager {
   /**
    * Get stage index for progress calculation
    */
-  private getStageIndex(stage: ConversationStage): number {
-    const stages: ConversationStage[] = [
+  private getStageIndex(stage: unknown): number {
+    const stages: unknown[] = [
       "greeting",
       "qualification",
       "assessment",
