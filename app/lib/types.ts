@@ -32,6 +32,7 @@ export interface JobDescription {
 }
 
 export interface CandidateProfile {
+  salaryExpectation: string;
   metadata: any;
   id: string;
   name?: string;

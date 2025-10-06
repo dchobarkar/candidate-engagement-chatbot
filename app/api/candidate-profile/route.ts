@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { sessionManager } from "../../lib/session-manager";
-import {
-  CandidateProfile,
-  ApiError,
-  ApiResponse,
-} from "../../lib/types";
+import { CandidateProfile, ApiError, ApiResponse } from "../../lib/types";
 
 // ============================================================================
 // INPUT VALIDATION SCHEMAS
@@ -449,8 +445,9 @@ export async function GET(request: NextRequest) {
         {
           code: "VALIDATION_ERROR",
           message: "Invalid query parameters",
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -470,6 +467,7 @@ export async function GET(request: NextRequest) {
             code: "SESSION_NOT_FOUND",
             message: "Session not found",
             timestamp: new Date(),
+            severity: "low",
           },
           404
         );
@@ -489,6 +487,7 @@ export async function GET(request: NextRequest) {
           code: "PROFILE_NOT_FOUND",
           message: "No candidate profile found",
           timestamp: new Date(),
+          severity: "low",
         },
         404
       );
@@ -556,6 +555,7 @@ export async function GET(request: NextRequest) {
         message: "Failed to retrieve profile",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
       500
     );
@@ -576,6 +576,7 @@ export async function PUT(request: NextRequest) {
           message: "Invalid JSON in request body",
           details: error,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -587,8 +588,9 @@ export async function PUT(request: NextRequest) {
         {
           code: "VALIDATION_ERROR",
           message: "Invalid request data",
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -613,6 +615,7 @@ export async function PUT(request: NextRequest) {
             warnings: profileValidation.warnings,
           },
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -630,6 +633,7 @@ export async function PUT(request: NextRequest) {
             code: "SESSION_NOT_FOUND",
             message: "Session not found",
             timestamp: new Date(),
+            severity: "low",
           },
           404
         );
@@ -647,6 +651,7 @@ export async function PUT(request: NextRequest) {
             code: "NO_ACTIVE_SESSION",
             message: "No active session found",
             timestamp: new Date(),
+            severity: "low",
           },
           404
         );
@@ -671,6 +676,7 @@ export async function PUT(request: NextRequest) {
             threshold: confidenceThreshold,
           },
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -708,6 +714,7 @@ export async function PUT(request: NextRequest) {
         message: "Failed to update profile",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
       500
     );
@@ -752,6 +759,7 @@ export async function POST(request: NextRequest) {
             message: "Invalid JSON in request body",
             details: error,
             timestamp: new Date(),
+            severity: "low",
           },
           400
         );
@@ -786,6 +794,7 @@ export async function POST(request: NextRequest) {
         code: "INVALID_ACTION",
         message: "Invalid action specified",
         timestamp: new Date(),
+        severity: "low",
       },
       400
     );
@@ -798,6 +807,7 @@ export async function POST(request: NextRequest) {
         message: "Failed to analyze profile",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
       500
     );
@@ -823,7 +833,7 @@ function analyzeProfileFit(
       s.toLowerCase()
     );
     const profileSkills = profile.skills.map((s) => s.name.toLowerCase());
-    const matchedSkills = requiredSkills.filter((skill) =>
+    const matchedSkills = requiredSkills.filter((skill: string) =>
       profileSkills.includes(skill)
     );
     analysis.skillMatch = matchedSkills.length / requiredSkills.length;
