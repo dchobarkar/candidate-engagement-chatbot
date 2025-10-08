@@ -74,7 +74,7 @@ const initialCandidateProfile: CandidateProfile = {
 };
 
 const initialError: ApiError = {
-  code: unknown,
+  code: "INTERNAL_SERVER_ERROR",
   message: "",
   details: undefined,
   timestamp: new Date(),

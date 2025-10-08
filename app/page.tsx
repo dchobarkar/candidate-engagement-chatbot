@@ -77,14 +77,18 @@ const Page = () => {
 
   // Error state
   if (error && !currentSession) {
+    // Convert ApiError to Error object for ErrorDisplay
+    const errorForDisplay =
+      error instanceof Error
+        ? error
+        : new Error(error.message || "An error occurred");
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Suspense fallback={<LoadingFallback />}>
           <ErrorDisplay
-            name="name"
-            error={error}
+            error={errorForDisplay}
             title="Application Error"
-            message="Failed to initialize the application. Please refresh the page or try again later."
             showRetry={true}
             onRetry={() => window.location.reload()}
           />
@@ -229,9 +233,12 @@ const Page = () => {
           <div className="mb-6">
             <Suspense fallback={<LoadingFallback />}>
               <ErrorDisplay
-                error={error}
+                error={
+                  error instanceof Error
+                    ? error
+                    : new Error(error.message || "An error occurred")
+                }
                 title="Application Error"
-                message="An error occurred while using the application. Please try again or contact support if the problem persists."
                 showRetry={true}
                 onRetry={() => window.location.reload()}
               />
