@@ -134,6 +134,7 @@ async function validateSessionAccess(sessionId: string): Promise<{
           code: "SESSION_NOT_FOUND",
           message: "Session not found",
           timestamp: new Date(),
+          severity: "low",
         },
       };
     }
@@ -145,6 +146,7 @@ async function validateSessionAccess(sessionId: string): Promise<{
           code: "SESSION_INVALID",
           message: "Session is invalid or expired",
           timestamp: new Date(),
+          severity: "low",
         },
       };
     }
@@ -158,6 +160,7 @@ async function validateSessionAccess(sessionId: string): Promise<{
         message: "Failed to validate session",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
     };
   }
@@ -222,6 +225,7 @@ export async function POST(request: NextRequest) {
           message: "Invalid JSON in request body",
           details: error,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -233,8 +237,9 @@ export async function POST(request: NextRequest) {
         {
           code: "VALIDATION_ERROR",
           message: "Invalid request data",
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -249,8 +254,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Track session metadata
-    const clientIP =
-      request.ip || request.headers.get("x-forwarded-for") || "unknown";
+    const clientIP = request.headers.get("x-forwarded-for") || "unknown";
     const userAgent = request.headers.get("user-agent") || undefined;
     const referrer = request.headers.get("referer") || undefined;
 
@@ -279,6 +283,7 @@ export async function POST(request: NextRequest) {
         message: "Failed to create session",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
       500
     );
@@ -309,8 +314,9 @@ export async function GET(request: NextRequest) {
         {
           code: "VALIDATION_ERROR",
           message: "Invalid query parameters",
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -329,8 +335,7 @@ export async function GET(request: NextRequest) {
 
       // Track access metadata
       trackSessionMetadata(sessionId, {
-        ipAddress:
-          request.ip || request.headers.get("x-forwarded-for") || "unknown",
+        ipAddress: request.headers.get("x-forwarded-for") || "unknown",
         userAgent: request.headers.get("user-agent") || undefined,
       });
 
@@ -398,6 +403,7 @@ export async function GET(request: NextRequest) {
         message: "Failed to retrieve session(s)",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
       500
     );
@@ -425,6 +431,7 @@ export async function DELETE(request: NextRequest) {
             code: "SESSION_DELETION_ERROR",
             message: "Failed to delete session",
             timestamp: new Date(),
+            severity: "low",
           },
           500
         );
@@ -479,6 +486,7 @@ export async function DELETE(request: NextRequest) {
         message: "Failed to delete session(s)",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
       500
     );
@@ -533,6 +541,7 @@ export async function PATCH(request: NextRequest) {
           message: "Invalid JSON in request body",
           details: error,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -550,6 +559,7 @@ export async function PATCH(request: NextRequest) {
               code: "SESSION_EXTENSION_ERROR",
               message: "Failed to extend session",
               timestamp: new Date(),
+              severity: "low",
             },
             404
           );
@@ -564,6 +574,7 @@ export async function PATCH(request: NextRequest) {
               code: "SESSION_COMPLETION_ERROR",
               message: "Failed to complete session",
               timestamp: new Date(),
+              severity: "low",
             },
             404
           );
@@ -578,6 +589,7 @@ export async function PATCH(request: NextRequest) {
               code: "SESSION_UPDATE_ERROR",
               message: "Failed to update session",
               timestamp: new Date(),
+              severity: "low",
             },
             404
           );
@@ -590,6 +602,7 @@ export async function PATCH(request: NextRequest) {
             code: "INVALID_ACTION",
             message: "Invalid action specified",
             timestamp: new Date(),
+            severity: "low",
           },
           400
         );
@@ -610,6 +623,7 @@ export async function PATCH(request: NextRequest) {
         message: "Failed to update session",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
       500
     );
