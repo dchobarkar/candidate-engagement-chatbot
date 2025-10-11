@@ -1,238 +1,122 @@
-"use client";
-
-import React, { useEffect, Suspense, lazy } from "react";
-
-import { LoadingSpinner } from "./components/LoadingSpinner";
-import { useView } from "./components/layout/ViewContext";
-import { useChatStore } from "./lib/store";
-import { useSession, useJob } from "./lib/hooks";
-
-const ChatInterface = lazy(() =>
-  import("./components/ChatInterface").then((module) => ({
-    default: module.ChatInterface,
-  }))
-);
-const CandidateProfile = lazy(() =>
-  import("./components/CandidateProfile").then((module) => ({
-    default: module.CanProf,
-  }))
-);
-const JobInfo = lazy(() =>
-  import("./components/JobInfo").then((module) => ({ default: module.JobInfo }))
-);
-const ErrorDisplay = lazy(() =>
-  import("./components/ErrorDisplay").then((module) => ({
-    default: module.ErrorDisplay,
-  }))
-);
+import Link from "next/link";
 
 const Page = () => {
-  // Get active view from context
-  const { activeView, setActiveView } = useView();
-
-  // Custom hooks for data
-  const { currentSession, initializeSession } = useSession();
-  const { jobContext } = useJob();
-  const { isLoading, error } = useChatStore();
-
-  // Initialize session on component mount
-  useEffect(() => {
-    if (!currentSession) {
-      initializeSession();
-    }
-  }, [currentSession, initializeSession]);
-
-  // Handle view switching
-  const handleViewChange = (view: "chat" | "profile" | "job") => {
-    setActiveView(view);
-  };
-
-  // Loading state
-  if (isLoading && !currentSession) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="xl" />
-          <p className="mt-4 text-gray-600">Initializing application...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Loading fallback component
-  const LoadingFallback = () => (
-    <div className="flex items-center justify-center p-8">
-      <LoadingSpinner size="md" />
-      <span className="ml-2 text-gray-600">Loading...</span>
-    </div>
-  );
-
-  // Error state
-  if (error && !currentSession) {
-    // Convert ApiError to Error object for ErrorDisplay
-    const errorForDisplay =
-      error instanceof Error
-        ? error
-        : new Error(error.message || "An error occurred");
-
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Suspense fallback={<LoadingFallback />}>
-          <ErrorDisplay
-            error={errorForDisplay}
-            title="Application Error"
-            showRetry={true}
-            onRetry={() => window.location.reload()}
-          />
-        </Suspense>
-      </div>
-    );
-  }
-
   return (
-    <>
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Error Display */}
-        {error && (
-          <div className="mb-6">
-            <Suspense fallback={<LoadingFallback />}>
-              <ErrorDisplay
-                error={
-                  error instanceof Error
-                    ? error
-                    : new Error(error.message || "An error occurred")
-                }
-                title="Application Error"
-                showRetry={true}
-                onRetry={() => window.location.reload()}
-              />
-            </Suspense>
-          </div>
-        )}
-
-        {/* Content Based on Active View */}
-        {activeView === "chat" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Sidebar - Job Information */}
-            <div className="lg:col-span-1 order-2 lg:order-1">
-              <div className="sticky top-8">
-                <Suspense fallback={<LoadingFallback />}>
-                  <JobInfo
-                    className="h-fit"
-                    showBenefits={true}
-                    showRequirements={true}
-                    showResponsibilities={true}
-                  />
-                </Suspense>
-              </div>
-            </div>
-
-            {/* Main Content - Chat Interface */}
-            <div className="lg:col-span-2 order-1 lg:order-2">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-[600px] lg:h-[700px]">
-                <Suspense fallback={<LoadingFallback />}>
-                  <ChatInterface
-                    className="h-full"
-                    onProfileUpdate={(profile) => {
-                      console.log("Profile updated:", profile);
-                      // Profile updates will be handled by the store
-                    }}
-                    onConversationComplete={(summary) => {
-                      console.log("Conversation completed:", summary);
-                      // Handle conversation completion
-                    }}
-                  />
-                </Suspense>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeView === "profile" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Candidate Profile
-              </h2>
-              <button
-                onClick={() => handleViewChange("chat")}
-                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
-              >
-                Back to Chat
-              </button>
-            </div>
-            <Suspense fallback={<LoadingFallback />}>
-              <CandidateProfile
-                className="w-full"
-                showEditMode={false}
-                onProfileUpdate={(profile) => {
-                  console.log("Profile updated:", profile);
-                  // Profile updates will be handled by the store
-                }}
-                onExport={(profile) => {
-                  console.log("Exporting profile:", profile);
-                  // Handle profile export
-                }}
-              />
-            </Suspense>
-          </div>
-        )}
-
-        {activeView === "job" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Job Information
-              </h2>
-              <button
-                onClick={() => handleViewChange("chat")}
-                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
-              >
-                Back to Chat
-              </button>
-            </div>
-            <Suspense fallback={<LoadingFallback />}>
-              <JobInfo
-                className="w-full"
-                showBenefits={true}
-                showRequirements={true}
-                showResponsibilities={true}
-              />
-            </Suspense>
-          </div>
-        )}
-
-        {/* Bottom Section - Quick Actions */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Quick Actions
-            </h3>
-            <div className="flex flex-wrap justify-center gap-4">
-              <button
-                onClick={() => handleViewChange("chat")}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Start Chat
-              </button>
-              <button
-                onClick={() => handleViewChange("profile")}
-                className="px-6 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                View Profile
-              </button>
-              <button
-                onClick={() => handleViewChange("job")}
-                className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Job Details
-              </button>
-            </div>
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* Hero Section */}
+      <div className="text-center mb-12">
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-2xl">HR</span>
           </div>
         </div>
-      </main>
-    </>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          Candidate Engagement Platform
+        </h1>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          AI-powered chatbot that engages job applicants with contextually
+          relevant information while qualifying their fit for positions.
+        </p>
+      </div>
+
+      {/* Features Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-6 h-6 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Intelligent Chat
+          </h3>
+          <p className="text-sm text-gray-600">
+            Natural conversations with AI-powered responses
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-6 h-6 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Profile Extraction
+          </h3>
+          <p className="text-sm text-gray-600">
+            Automatically extracts candidate information
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-6 h-6 text-purple-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Job Details
+          </h3>
+          <p className="text-sm text-gray-600">
+            Comprehensive job requirements and benefits
+          </p>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="text-center">
+        <Link
+          href="/chat"
+          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Get Started
+          <svg
+            className="ml-2 w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 7l5 5m0 0l-5 5m5-5H6"
+            />
+          </svg>
+        </Link>
+      </div>
+    </main>
   );
 };
 

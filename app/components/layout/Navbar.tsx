@@ -28,7 +28,7 @@ const Navbar = ({ jobContext, currentSession }: NavbarProps) => {
         <div className="flex items-center justify-between h-16">
           {/* Logo and Title */}
           <Link
-            href="/chat"
+            href="/"
             className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
           >
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
