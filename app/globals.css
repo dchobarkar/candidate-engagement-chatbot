@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@import "./styles/utilities.css";
+/* @import "./styles/utilities.css"; */
 
 :root {
   /* Primary colors */
@@ -230,11 +230,9 @@
 @layer components {
   /* Chat message animations */
   .message-enter {
-    @apply animate-fade-in-up;
   }
 
   .message-exit {
-    @apply animate-fade-out-down;
   }
 
   /* Typing indicator */
