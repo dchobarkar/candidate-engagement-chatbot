@@ -25,9 +25,7 @@ export function JobInfo({
   onJobSelect,
   onApply,
 }: JobInfoProps) {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(["overview"])
-  );
+  const [activeTab, setActiveTab] = useState<string>("overview");
   const [selectedJob, setSelectedJob] = useState<JobDescription | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,31 +36,19 @@ export function JobInfo({
   useEffect(() => {
     if (jobId) {
       const job = getJobById(jobId);
-      if (job) {
-        setSelectedJob(job);
-      }
-    } else if (jobContext) {
-      setSelectedJob(jobContext);
-    }
+      if (job) setSelectedJob(job);
+    } else if (jobContext) setSelectedJob(jobContext);
   }, [jobId, jobContext, getJobById]);
 
-  // Toggle section expansion
-  const toggleSection = (section: string) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(section)) {
-      newExpanded.delete(section);
-    } else {
-      newExpanded.add(section);
-    }
-    setExpandedSections(newExpanded);
+  // Handle tab change
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
   };
 
   // Handle job selection
   const handleJobSelect = (job: JobDescription) => {
     setSelectedJob(job);
-    if (onJobSelect) {
-      onJobSelect(job);
-    }
+    if (onJobSelect) onJobSelect(job);
   };
 
   // Handle apply action
@@ -154,15 +140,15 @@ export function JobInfo({
       className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}
     >
       {/* Job Header */}
-      <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center space-x-3 mb-2">
-              <h2 className="text-2xl font-bold text-gray-900">
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 gap-2 mb-3">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
                 {selectedJob.title}
               </h2>
               <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getJobTypeStyle(
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium border flex-shrink-0 ${getJobTypeStyle(
                   selectedJob.type
                 )}`}
               >
@@ -170,10 +156,10 @@ export function JobInfo({
               </span>
             </div>
 
-            <div className="flex items-center space-x-4 text-gray-600 mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 gap-2 sm:gap-4 text-gray-600 mb-3">
               <div className="flex items-center space-x-1">
                 <svg
-                  className="w-4 h-4"
+                  className="w-4 h-4 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -185,12 +171,12 @@ export function JobInfo({
                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                   />
                 </svg>
-                <span>{selectedJob.company}</span>
+                <span className="text-sm truncate">{selectedJob.company}</span>
               </div>
 
               <div className="flex items-center space-x-1">
                 <svg
-                  className="w-4 h-4"
+                  className="w-4 h-4 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -208,15 +194,17 @@ export function JobInfo({
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <span>{selectedJob.location}</span>
+                <span className="text-sm truncate">{selectedJob.location}</span>
                 {selectedJob.remote && (
-                  <span className="text-blue-600 font-medium">(Remote)</span>
+                  <span className="text-blue-600 font-medium text-sm">
+                    (Remote)
+                  </span>
                 )}
               </div>
 
               <div className="flex items-center space-x-1">
                 <svg
-                  className="w-4 h-4"
+                  className="w-4 h-4 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -228,7 +216,7 @@ export function JobInfo({
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span>
+                <span className="text-sm">
                   {selectedJob.experience.min}-{selectedJob.experience.max}{" "}
                   {selectedJob.experience.unit}
                 </span>
@@ -236,21 +224,21 @@ export function JobInfo({
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-2">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">
                   {selectedJob.skills.length}
                 </div>
                 <div className="text-xs text-gray-500">Required Skills</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
                   {selectedJob.responsibilities.length}
                 </div>
                 <div className="text-xs text-gray-500">Responsibilities</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-xl sm:text-2xl font-bold text-purple-600">
                   {selectedJob.benefits?.length || 0}
                 </div>
                 <div className="text-xs text-gray-500">Benefits</div>
@@ -260,14 +248,14 @@ export function JobInfo({
 
           {/* Apply Button */}
           {onApply && (
-            <div className="ml-6">
+            <div className="lg:ml-6 flex-shrink-0">
               <button
                 onClick={() => handleApply(selectedJob)}
                 disabled={isLoading}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Applying...</span>
                   </div>
@@ -281,50 +269,140 @@ export function JobInfo({
       </div>
 
       {/* Job Details Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8 px-6">
+      <div className="border-b border-gray-200 bg-white">
+        <nav
+          className="flex space-x-1 px-4 sm:px-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          aria-label="Tabs"
+        >
           {(
             [
-              "overview",
-              "requirements",
-              "responsibilities",
-              "benefits",
+              {
+                id: "overview",
+                label: "Overview",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                id: "requirements",
+                label: "Requirements",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                id: "responsibilities",
+                label: "Responsibilities",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                id: "benefits",
+                label: "Benefits",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                ),
+              },
             ] as const
           ).map((tab) => (
             <button
-              key={tab}
-              onClick={() => toggleSection(tab)}
-              className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${
-                expandedSections.has(tab)
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`
+                group relative flex items-center space-x-2 px-3 sm:px-4 py-3 sm:py-4 
+                font-medium text-xs sm:text-sm transition-all duration-200
+                whitespace-nowrap flex-shrink-0 border-b-2
+                ${
+                  activeTab === tab.id
+                    ? "text-blue-600 border-blue-600 bg-blue-50/50"
+                    : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50/50"
+                }
+              `}
             >
-              {tab}
+              <span
+                className={
+                  activeTab === tab.id
+                    ? "text-blue-600"
+                    : "text-gray-400 group-hover:text-gray-600 transition-colors"
+                }
+              >
+                {tab.icon}
+              </span>
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
             </button>
           ))}
         </nav>
       </div>
 
       {/* Tab Content */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6 min-h-[300px]">
         {/* Overview Section */}
-        {expandedSections.has("overview") && (
-          <div className="space-y-6">
+        {activeTab === "overview" && (
+          <div className="space-y-6 animate-fade-in">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Job Summary */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3">
                   Job Summary
                 </h3>
-                <p className="text-gray-700 leading-relaxed">
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                   {selectedJob.summary}
                 </p>
               </div>
 
               {/* Key Details */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3">
                   Key Details
                 </h3>
                 <div className="space-y-3">
@@ -390,14 +468,14 @@ export function JobInfo({
         )}
 
         {/* Requirements Section */}
-        {expandedSections.has("requirements") && showRequirements && (
-          <div className="space-y-6">
+        {activeTab === "requirements" && showRequirements && (
+          <div className="space-y-6 animate-fade-in">
             {/* Required Skills */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3">
                 Required Skills
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {selectedJob.skills.map((skill, index) => (
                   <div key={index} className="flex items-center space-x-2">
                     <svg
@@ -418,8 +496,8 @@ export function JobInfo({
             </div>
 
             {/* Experience Requirements */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3">
                 Experience Requirements
               </h3>
               <div className="space-y-3">
@@ -443,8 +521,8 @@ export function JobInfo({
 
             {/* Education Requirements */}
             {selectedJob.education && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3">
                   Education Requirements
                 </h3>
                 <div className="space-y-2">
@@ -498,23 +576,23 @@ export function JobInfo({
         )}
 
         {/* Responsibilities Section */}
-        {expandedSections.has("responsibilities") && showResponsibilities && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">
+        {activeTab === "responsibilities" && showResponsibilities && (
+          <div className="space-y-3 sm:space-y-4 animate-fade-in">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900">
               Key Responsibilities
             </h3>
-            <div className="grid gap-3">
+            <div className="grid gap-2 sm:gap-3">
               {selectedJob.responsibilities.map((responsibility, index) => (
                 <div
                   key={index}
-                  className="flex items-start space-x-3 bg-gray-50 rounded-lg p-4"
+                  className="flex items-start space-x-2 sm:space-x-3 bg-gray-50 rounded-lg p-3 sm:p-4"
                 >
-                  <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                    <span className="text-blue-600 text-sm font-medium">
+                  <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                    <span className="text-blue-600 text-xs sm:text-sm font-medium">
                       {index + 1}
                     </span>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                     {responsibility}
                   </p>
                 </div>
@@ -524,45 +602,48 @@ export function JobInfo({
         )}
 
         {/* Benefits Section */}
-        {expandedSections.has("benefits") &&
-          showBenefits &&
-          selectedJob.benefits && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Benefits & Perks
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedJob.benefits.map((benefit, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-3 bg-green-50 rounded-lg p-4"
+        {activeTab === "benefits" && showBenefits && selectedJob.benefits && (
+          <div
+            className="space-y-3 sm:space-y-4"
+            style={{ animation: "fadeIn 0.3s ease-in-out" }}
+          >
+            <h3 className="text-base sm:text-lg font-medium text-gray-900">
+              Benefits & Perks
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+              {selectedJob.benefits.map((benefit, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-2 sm:space-x-3 bg-green-50 rounded-lg p-3 sm:p-4"
+                >
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
                   >
-                    <svg
-                      className="w-5 h-5 text-green-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-gray-700">{benefit}</span>
-                  </div>
-                ))}
-              </div>
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-sm sm:text-base text-gray-700">
+                    {benefit}
+                  </span>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
       </div>
 
       {/* Job Selection (if multiple jobs available) */}
       {availableJobs && availableJobs.length > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
           <h3 className="text-sm font-medium text-gray-900 mb-3">
             Other Available Positions
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-2 sm:gap-3">
             {availableJobs
               .filter((job) => job.id !== selectedJob.id)
               .slice(0, 3)
@@ -570,13 +651,17 @@ export function JobInfo({
                 <button
                   key={job.id}
                   onClick={() => handleJobSelect(job)}
-                  className="text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all duration-200"
+                  className="text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all duration-200 w-full"
                 >
-                  <div className="font-medium text-gray-900 text-sm">
+                  <div className="font-medium text-gray-900 text-sm break-words">
                     {job.title}
                   </div>
-                  <div className="text-xs text-gray-600">{job.company}</div>
-                  <div className="text-xs text-gray-500">{job.location}</div>
+                  <div className="text-xs text-gray-600 truncate">
+                    {job.company}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {job.location}
+                  </div>
                 </button>
               ))}
           </div>
