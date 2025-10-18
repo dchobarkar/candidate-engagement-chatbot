@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { StoreProvider } from "./components/StoreProvider";
-import { ViewProvider } from "./components/layout/ViewContext";
 import LayoutWrapper from "./components/layout/LayoutWrapper";
 import "./globals.css";
 
@@ -34,9 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <StoreProvider>
-          <ViewProvider>
-            <LayoutWrapper>{children}</LayoutWrapper>
-          </ViewProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
         </StoreProvider>
       </body>
     </html>
