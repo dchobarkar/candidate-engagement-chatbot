@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import {
   useChat,
   useSession,
+  useJob,
   useHasError,
   useErrorMessage,
   useCanRetry,
@@ -25,12 +26,11 @@ interface ChatInterfaceProps {
   onProfileUpdate?: (profile: any) => void;
   onConversationComplete?: (summary: any) => void;
 }
-
-export function ChatInterface({
+const ChatInterface = ({
   className = "",
   onProfileUpdate,
   onConversationComplete,
-}: ChatInterfaceProps) {
+}: ChatInterfaceProps) => {
   // State management
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -44,9 +44,10 @@ export function ChatInterface({
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Custom hooks
-  const { messages, isLoading, addMessage, setLoading, setError } = useChat();
+  const { messages, isLoading, sendMessage, setLoading, setError } = useChat();
 
   const { currentSession } = useSession();
+  const { jobContext } = useJob();
   const hasError = useHasError();
   const errorMessage = useErrorMessage();
   const canRetry = useCanRetry();
@@ -107,38 +108,29 @@ export function ChatInterface({
 
     if (!inputValue.trim() || isLoading) return;
 
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: MessageRole.USER,
-      content: inputValue.trim(),
-      timestamp: new Date(),
-      status: "sending",
-      type: "",
-      sessionId: "",
-    };
+    const messageContent = inputValue.trim();
+    setInputValue("");
+
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
 
     try {
-      // Add user message immediately
-      addMessage(userMessage);
-      setInputValue("");
-
-      // Reset textarea height
-      if (inputRef.current) {
-        inputRef.current.style.height = "auto";
-      }
-
-      // Set loading state
-      setLoading(true);
+      // Set typing indicator
       setIsTyping(true);
+
+      // Send message via store (which handles API call and adds messages)
+      await sendMessage(messageContent);
     } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : "An unexpected error occurred";
-      addMessage({
-        ...userMessage,
-        status: "error",
+      console.error("Error sending message:", err);
+      setError({
+        code: "MESSAGE_SEND_ERROR",
+        message: err instanceof Error ? err.message : "Failed to send message",
+        timestamp: new Date(),
+        severity: "medium",
       });
     } finally {
-      setLoading(false);
       setIsTyping(false);
 
       // Focus input for next message
@@ -184,26 +176,29 @@ export function ChatInterface({
   );
 
   return (
-    <div className={`flex flex-col h-full bg-gray-50 ${className}`}>
+    <div className={`flex flex-col h-full bg-gray-50 relative ${className}`}>
       {/* Chat Header */}
-      <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold text-lg">HR</span>
+      <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-semibold text-sm sm:text-lg">
+                HR
+              </span>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {"Candidate Engagement"}
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                {jobContext?.title || "Candidate Engagement"}
               </h2>
-              <p className="text-sm text-gray-600">
-                {"Company"} • {currentSession?.status || "Active"}
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
+                {jobContext?.company || "Company"} •{" "}
+                {currentSession?.status || "Active"}
               </p>
             </div>
           </div>
 
           {currentSession && (
-            <div className="text-right">
+            <div className="text-right flex-shrink-0 hidden sm:block">
               <p className="text-xs text-gray-500">Session ID</p>
               <p className="text-sm font-mono text-gray-700">
                 {currentSession.id.substring(0, 8)}...
@@ -216,7 +211,7 @@ export function ChatInterface({
       {/* Messages Container */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto px-6 py-4 space-y-4 scroll-smooth"
+        className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4 scroll-smooth"
       >
         {/* Welcome Message */}
         {shouldShowWelcome && (
@@ -225,11 +220,12 @@ export function ChatInterface({
               <span className="text-blue-600 text-2xl">👋</span>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Welcome to {"our company"}!
+              Welcome to {jobContext?.company || "our company"}!
             </h3>
             <p className="text-gray-600 max-w-md mx-auto">
-              I'm here to help you learn more about the {"position"} and answer
-              any questions you might have. Let's start a conversation!
+              I'm here to help you learn more about the{" "}
+              {jobContext?.title || "position"} and answer any questions you
+              might have. Let's start a conversation!
             </p>
           </div>
         )}
@@ -303,7 +299,7 @@ export function ChatInterface({
       {showScrollButton && (
         <button
           onClick={() => scrollToBottom("smooth")}
-          className="absolute bottom-24 right-8 w-10 h-10 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="absolute bottom-28 sm:bottom-24 right-4 sm:right-8 w-10 h-10 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 hover:shadow-xl transition-all z-10"
           aria-label="Scroll to bottom"
         >
           <svg
@@ -323,7 +319,7 @@ export function ChatInterface({
       )}
 
       {/* Message Input */}
-      <div className="flex-shrink-0 bg-white border-t border-gray-200 px-6 py-4">
+      <div className="flex-shrink-0 bg-white border-t border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* Input Container */}
           <div
@@ -340,8 +336,8 @@ export function ChatInterface({
               onKeyPress={handleKeyPress}
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
-              placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
-              className="w-full px-4 py-3 pr-12 resize-none border-0 focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500"
+              placeholder="Type your message here..."
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-10 sm:pr-12 resize-none border-0 focus:ring-0 focus:outline-none text-sm sm:text-base text-gray-900 placeholder-gray-500"
               rows={1}
               disabled={isLoading}
               aria-label="Message input"
@@ -351,9 +347,9 @@ export function ChatInterface({
             <button
               type="submit"
               disabled={!inputValue.trim() || isLoading}
-              className={`absolute right-2 bottom-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+              className={`absolute right-1.5 sm:right-2 bottom-1.5 sm:bottom-2 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
                 inputValue.trim() && !isLoading
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed"
               }`}
               aria-label="Send message"
@@ -380,16 +376,14 @@ export function ChatInterface({
 
           {/* Input Helpers */}
           <div className="flex items-center justify-between text-xs text-gray-500">
-            <div className="flex items-center space-x-4">
-              <span>Press Enter to send</span>
-              <span>Shift+Enter for new line</span>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="hidden sm:inline">Press Enter to send</span>
+              <span className="hidden md:inline">Shift+Enter for new line</span>
             </div>
 
             {currentSession && (
-              <div className="text-right">
-                <span>
-                  Session: {format(currentSession.createdAt, "MMM d, HH:mm")}
-                </span>
+              <div className="text-right hidden sm:block">
+                <span>{format(currentSession.createdAt, "MMM d, HH:mm")}</span>
               </div>
             )}
           </div>
@@ -398,7 +392,7 @@ export function ChatInterface({
 
       {/* Connection Status */}
       {currentSession && (
-        <div className="flex-shrink-0 bg-gray-50 border-t border-gray-200 px-6 py-2">
+        <div className="flex-shrink-0 bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-2">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <div className="flex items-center space-x-2">
               <div
@@ -408,14 +402,14 @@ export function ChatInterface({
                     : "bg-yellow-400"
                 }`}
               />
-              <span>
+              <span className="hidden sm:inline">
                 {currentSession.status === "active"
                   ? "Connected"
                   : "Session Active"}
               </span>
             </div>
 
-            <span>
+            <span className="hidden md:inline">
               {currentSession.lastActivity
                 ? `Last activity: ${format(
                     currentSession.lastActivity,
@@ -428,4 +422,6 @@ export function ChatInterface({
       )}
     </div>
   );
-}
+};
+
+export default ChatInterface;
