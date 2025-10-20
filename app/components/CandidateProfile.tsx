@@ -42,16 +42,11 @@ export const CanProf = memo(
       (profile: Partial<CandidateProfile>) => {
         const errors: string[] = [];
 
-        if (profile.name && profile.name.trim().length < 2) {
+        if (profile.name && profile.name.trim().length < 2)
           errors.push("Name must be at least 2 characters");
-        }
 
-        if (
-          profile.email &&
-          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)
-        ) {
+        if (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))
           errors.push("Invalid email format");
-        }
 
         return {
           isValid: errors.length === 0,
@@ -273,54 +268,56 @@ export const CanProf = memo(
         className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-lg">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-base sm:text-lg">
                   {candidateProfile.name?.charAt(0) || "C"}
                 </span>
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                   {candidateProfile.name || "Candidate Profile"}
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   Profile completion: {calculateCompletion()}%
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-shrink-0">
               {onExport && (
                 <button
                   onClick={() => onExport(candidateProfile)}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
-                  Export
+                  <span className="hidden sm:inline">Export</span>
+                  <span className="sm:hidden">📥</span>
                 </button>
               )}
 
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
-                  Edit Profile
+                  <span className="hidden sm:inline">Edit Profile</span>
+                  <span className="sm:hidden">Edit</span>
                 </button>
               ) : (
                 <div className="flex space-x-2">
                   <button
                     onClick={handleCancel}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSave}
-                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                   >
-                    Save Changes
+                    Save
                   </button>
                 </div>
               )}
@@ -329,88 +326,197 @@ export const CanProf = memo(
         </div>
 
         {/* Progress Bar */}
-        <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+        <div className="px-4 sm:px-6 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 mb-2">
             <span>Profile Completion</span>
-            <span>{calculateCompletion()}%</span>
+            <span className="font-medium">{calculateCompletion()}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${calculateCompletion}%` }}
+              style={{ width: `${calculateCompletion()}%` }}
             ></div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {(["overview", "skills", "experience", "education"] as const).map(
-              (tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${
-                    activeTab === tab
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+        <div className="border-b border-gray-200 bg-white">
+          <nav
+            className="flex space-x-1 px-4 sm:px-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            aria-label="Profile Tabs"
+          >
+            {(
+              [
+                {
+                  id: "overview",
+                  label: "Overview",
+                  icon: (
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  ),
+                },
+                {
+                  id: "skills",
+                  label: "Skills",
+                  icon: (
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                      />
+                    </svg>
+                  ),
+                },
+                {
+                  id: "experience",
+                  label: "Experience",
+                  icon: (
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.815-8.927-2.2M21 13.255v-3.255a3 3 0 00-3-3H6a3 3 0 00-3 3v3.255M21 13.255a23.931 23.931 0 01-8.927 2.2M21 13.255a23.931 23.931 0 00-8.927-2.2M21 13.255v-3.255a3 3 0 00-3-3H6a3 3 0 00-3 3v3.255M21 13.255a23.931 23.931 0 01-8.927 2.2"
+                      />
+                    </svg>
+                  ),
+                },
+                {
+                  id: "education",
+                  label: "Education",
+                  icon: (
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 14l9-5-9-5-9 5 9 5z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                      />
+                    </svg>
+                  ),
+                },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                className={`
+                  group relative flex items-center space-x-2 px-3 sm:px-4 py-3 sm:py-4 
+                  font-medium text-xs sm:text-sm transition-all duration-200
+                  whitespace-nowrap flex-shrink-0 border-b-2
+                  ${
+                    activeTab === tab.id
+                      ? "text-blue-600 border-blue-600 bg-blue-50/50"
+                      : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50/50"
+                  }
+                `}
+              >
+                <span
+                  className={
+                    activeTab === tab.id
+                      ? "text-blue-600"
+                      : "text-gray-400 group-hover:text-gray-600 transition-colors"
+                  }
                 >
-                  {tab}
-                </button>
-              )
-            )}
+                  {tab.icon}
+                </span>
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
+              </button>
+            ))}
           </nav>
         </div>
 
         {/* Tab Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6 min-h-[400px]">
           {activeTab === "overview" && (
-            <OverviewTab
-              profile={candidateProfile}
-              isEditing={isEditing}
-              editForm={editForm}
-              onFieldChange={handleFieldChange}
-              expandedSections={expandedSections}
-              onToggleSection={toggleSection}
-              getConfidenceColor={getConfidenceColor}
-            />
+            <div className="animate-fade-in">
+              <OverviewTab
+                profile={candidateProfile}
+                isEditing={isEditing}
+                editForm={editForm}
+                onFieldChange={handleFieldChange}
+                expandedSections={expandedSections}
+                onToggleSection={toggleSection}
+                getConfidenceColor={getConfidenceColor}
+              />
+            </div>
           )}
 
           {activeTab === "skills" && (
-            <SkillsTab
-              profile={candidateProfile}
-              isEditing={isEditing}
-              editForm={editForm}
-              onFieldChange={handleFieldChange}
-              onSkillChange={handleSkillChange}
-              onAddSkill={addSkill}
-              onRemoveSkill={removeSkill}
-              getSkillLevelColor={getSkillLevelColor}
-              getConfidenceColor={getConfidenceColor}
-            />
+            <div className="animate-fade-in">
+              <SkillsTab
+                profile={candidateProfile}
+                isEditing={isEditing}
+                editForm={editForm}
+                onFieldChange={handleFieldChange}
+                onSkillChange={handleSkillChange}
+                onAddSkill={addSkill}
+                onRemoveSkill={removeSkill}
+                getSkillLevelColor={getSkillLevelColor}
+                getConfidenceColor={getConfidenceColor}
+              />
+            </div>
           )}
 
           {activeTab === "experience" && (
-            <ExperienceTab
-              profile={candidateProfile}
-              isEditing={isEditing}
-              editForm={editForm}
-              onFieldChange={handleFieldChange}
-              expandedSections={expandedSections}
-              onToggleSection={toggleSection}
-            />
+            <div className="animate-fade-in">
+              <ExperienceTab
+                profile={candidateProfile}
+                isEditing={isEditing}
+                editForm={editForm}
+                onFieldChange={handleFieldChange}
+                expandedSections={expandedSections}
+                onToggleSection={toggleSection}
+              />
+            </div>
           )}
 
           {activeTab === "education" && (
-            <EducationTab
-              profile={candidateProfile}
-              isEditing={isEditing}
-              editForm={editForm}
-              onFieldChange={handleFieldChange}
-              expandedSections={expandedSections}
-              onToggleSection={toggleSection}
-            />
+            <div className="animate-fade-in">
+              <EducationTab
+                profile={candidateProfile}
+                isEditing={isEditing}
+                editForm={editForm}
+                onFieldChange={handleFieldChange}
+                expandedSections={expandedSections}
+                onToggleSection={toggleSection}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -426,6 +532,76 @@ export const CanProf = memo(
     );
   }
 );
+
+// Helper function to format field values for display
+const formatFieldValue = (value: any, fieldKey: string): string => {
+  if (value === null || value === undefined) {
+    return "Not specified";
+  }
+
+  // Handle objects
+  if (typeof value === "object" && !Array.isArray(value) && !(value instanceof Date)) {
+    if (fieldKey === "location") {
+      const loc = value as { current?: string; willingToRelocate?: boolean; preferredLocations?: string[] };
+      const parts: string[] = [];
+      if (loc.current) parts.push(loc.current);
+      if (loc.willingToRelocate) parts.push("Willing to relocate");
+      if (loc.preferredLocations && loc.preferredLocations.length > 0) {
+        parts.push(`Preferred: ${loc.preferredLocations.join(", ")}`);
+      }
+      return parts.length > 0 ? parts.join(" • ") : "Not specified";
+    }
+    
+    if (fieldKey === "availability") {
+      const avail = value as { startDate?: Date; noticePeriod?: number; preferredSchedule?: string };
+      const parts: string[] = [];
+      if (avail.preferredSchedule) parts.push(avail.preferredSchedule);
+      if (avail.noticePeriod) parts.push(`${avail.noticePeriod} days notice`);
+      if (avail.startDate) {
+        parts.push(`Available from ${format(new Date(avail.startDate), "MMM d, yyyy")}`);
+      }
+      return parts.length > 0 ? parts.join(" • ") : "Not specified";
+    }
+    
+    if (fieldKey === "experience") {
+      const exp = value as { years?: number; months?: number; length?: number };
+      if (exp.years !== undefined) {
+        return exp.months ? `${exp.years} years, ${exp.months} months` : `${exp.years} years`;
+      }
+      if (exp.length !== undefined) {
+        return `${exp.length} years`;
+      }
+      return "Not specified";
+    }
+    
+    if (fieldKey === "salaryExpectation" || fieldKey === "salary") {
+      const sal = value as { expected?: number; currency?: string; negotiable?: boolean } | string;
+      if (typeof sal === "string") return sal;
+      if (sal.expected !== undefined) {
+        const currency = sal.currency || "USD";
+        const negotiable = sal.negotiable ? " (Negotiable)" : "";
+        return `${currency} ${sal.expected.toLocaleString()}${negotiable}`;
+      }
+      return "Not specified";
+    }
+    
+    // For other objects, stringify them
+    return JSON.stringify(value);
+  }
+
+  // Handle arrays
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value.join(", ") : "Not specified";
+  }
+
+  // Handle dates
+  if (value instanceof Date) {
+    return format(value, "MMM d, yyyy");
+  }
+
+  // Handle primitives
+  return String(value);
+};
 
 // Overview Tab Component
 function OverviewTab({
@@ -478,9 +654,9 @@ function OverviewTab({
             onClick={() => onToggleSection(section.id)}
             className="flex items-center justify-between w-full text-left"
           >
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl">{section.icon}</span>
-              <h3 className="text-lg font-medium text-gray-900">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <span className="text-xl sm:text-2xl">{section.icon}</span>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">
                 {section.title}
               </h3>
             </div>
@@ -502,17 +678,21 @@ function OverviewTab({
           </button>
 
           {expandedSections.has(section.id) && (
-            <div className="mt-4 space-y-4">
+            <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
               {section.fields.map((field) => (
                 <div key={field.key}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     {field.label}
                   </label>
                   {isEditing ? (
                     field.type === "textarea" ? (
                       <textarea
                         value={
-                          editForm[field.key as keyof CandidateProfile] || ""
+                          typeof editForm[field.key as keyof CandidateProfile] === "string"
+                            ? (editForm[field.key as keyof CandidateProfile] as string)
+                            : editForm[field.key as keyof CandidateProfile]
+                            ? String(editForm[field.key as keyof CandidateProfile])
+                            : ""
                         }
                         onChange={(e) =>
                           onFieldChange(
@@ -520,14 +700,36 @@ function OverviewTab({
                             e.target.value
                           )
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         rows={3}
+                      />
+                    ) : field.key === "experience" ? (
+                      <input
+                        type="number"
+                        value={
+                          typeof editForm.experience === "object" && editForm.experience
+                            ? (editForm.experience as any).years || (editForm.experience as any).length || ""
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const years = parseInt(e.target.value) || 0;
+                          onFieldChange(
+                            "experience",
+                            { years, months: 0, length: years }
+                          );
+                        }}
+                        placeholder="Years of experience"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     ) : (
                       <input
                         type={field.type}
                         value={
-                          editForm[field.key as keyof CandidateProfile] || ""
+                          typeof editForm[field.key as keyof CandidateProfile] === "string"
+                            ? (editForm[field.key as keyof CandidateProfile] as string)
+                            : editForm[field.key as keyof CandidateProfile]
+                            ? String(editForm[field.key as keyof CandidateProfile])
+                            : ""
                         }
                         onChange={(e) =>
                           onFieldChange(
@@ -535,13 +737,15 @@ function OverviewTab({
                             e.target.value
                           )
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     )
                   ) : (
-                    <div className="px-3 py-2 bg-white border border-gray-200 rounded-md">
-                      {profile[field.key as keyof CandidateProfile] ||
-                        "Not specified"}
+                    <div className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-md break-words">
+                      {formatFieldValue(
+                        profile[field.key as keyof CandidateProfile],
+                        field.key
+                      )}
                     </div>
                   )}
                 </div>
@@ -553,11 +757,11 @@ function OverviewTab({
 
       {/* Confidence Scores */}
       {profile.metadata?.confidence && (
-        <div className="bg-blue-50 rounded-lg p-4">
-          <h3 className="text-lg font-medium text-blue-900 mb-3">
+        <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+          <h3 className="text-base sm:text-lg font-medium text-blue-900 mb-3">
             Profile Confidence
           </h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="text-center">
               <div
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getConfidenceColor(
@@ -610,12 +814,14 @@ function SkillsTab({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">Technical Skills</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900">
+          Technical Skills
+        </h3>
         {isEditing && (
           <button
             onClick={onAddSkill}
-            className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="px-3 py-2 text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors w-full sm:w-auto"
           >
             + Add Skill
           </button>
@@ -641,11 +847,11 @@ function SkillsTab({
           <p className="text-sm">Skills will be extracted as you chat</p>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {skills.map((skill, index) => (
-            <div key={index} className="bg-gray-50 rounded-lg p-4">
+            <div key={index} className="bg-gray-50 rounded-lg p-3 sm:p-4">
               {isEditing ? (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <input
                     type="text"
                     value={skill.name}
@@ -653,14 +859,14 @@ function SkillsTab({
                       onSkillChange(index, "name", e.target.value)
                     }
                     placeholder="Skill name"
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <select
                     value={skill.level}
                     onChange={(e) =>
                       onSkillChange(index, "level", e.target.value)
                     }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
@@ -707,9 +913,9 @@ function SkillsTab({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-lg font-medium text-gray-900">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span className="text-base sm:text-lg font-medium text-gray-900">
                       {skill.name}
                     </span>
                     <span
@@ -755,7 +961,9 @@ function ExperienceTab({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-gray-900">Work Experience</h3>
+      <h3 className="text-base sm:text-lg font-medium text-gray-900">
+        Work Experience
+      </h3>
 
       {experiences.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
@@ -775,14 +983,18 @@ function ExperienceTab({
           <p>No work experience recorded yet</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {experiences.map((exp, index) => (
-            <div key={index} className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-900">{exp.title}</h4>
-                  <p className="text-sm text-gray-600">{exp.company}</p>
-                  <p className="text-xs text-gray-500">
+            <div key={index} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start sm:items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-sm sm:text-base font-medium text-gray-900 break-words">
+                    {exp.title}
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-600 break-words">
+                    {exp.company}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
                     {exp.startDate &&
                       format(new Date(exp.startDate), "MMM yyyy")}{" "}
                     -
@@ -815,7 +1027,9 @@ function ExperienceTab({
 
               {expandedSections.has(`exp-${index}`) && (
                 <div className="mt-3 pt-3 border-t border-gray-200">
-                  <p className="text-sm text-gray-700">{exp.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-700 break-words">
+                    {exp.description}
+                  </p>
                 </div>
               )}
             </div>
@@ -844,7 +1058,9 @@ function EducationTab({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-gray-900">Education</h3>
+      <h3 className="text-base sm:text-lg font-medium text-gray-900">
+        Education
+      </h3>
 
       {education.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
@@ -870,14 +1086,18 @@ function EducationTab({
           <p>No education information recorded yet</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {education.map((edu, index) => (
-            <div key={index} className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-900">{edu.degree}</h4>
-                  <p className="text-sm text-gray-600">{edu.institution}</p>
-                  <p className="text-xs text-gray-500">
+            <div key={index} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start sm:items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-sm sm:text-base font-medium text-gray-900 break-words">
+                    {edu.degree}
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-600 break-words">
+                    {edu.institution}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
                     {edu.startDate && format(new Date(edu.startDate), "yyyy")} -
                     {edu.endDate
                       ? format(new Date(edu.endDate), " yyyy")
@@ -908,9 +1128,13 @@ function EducationTab({
 
               {expandedSections.has(`edu-${index}`) && (
                 <div className="mt-3 pt-3 border-t border-gray-200">
-                  <p className="text-sm text-gray-700">{edu.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-700 break-words">
+                    {edu.description}
+                  </p>
                   {edu.gpa && (
-                    <p className="text-sm text-gray-600 mt-2">GPA: {edu.gpa}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-2">
+                      GPA: {edu.gpa}
+                    </p>
                   )}
                 </div>
               )}
