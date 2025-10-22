@@ -181,11 +181,11 @@ function validateProfile(profile: Partial<CandidateProfile>): {
 
   // Experience validation
   if (profile.experience) {
-    if (profile.experience.years && profile.experience.years < 0) {
+    if (profile.experience?.years && profile.experience.years < 0) {
       errors.push("Experience years cannot be negative");
     }
     if (
-      profile.experience.months &&
+      profile.experience?.months &&
       (profile.experience.months < 0 || profile.experience.months > 11)
     ) {
       errors.push("Experience months must be between 0 and 11");
@@ -253,7 +253,7 @@ function calculateProfileConfidence(profile: CandidateProfile): number {
 
   // Factor 2: Experience Information (20%)
   if (profile.experience) {
-    if (profile.experience.years > 0 || profile.experience.months > 0) {
+    if ((profile.experience.years || 0) > 0 || (profile.experience.months || 0) > 0) {
       confidence += 0.15;
     }
     if (profile.experience.description) {
@@ -276,7 +276,7 @@ function calculateProfileConfidence(profile: CandidateProfile): number {
 
   // Factor 5: Additional Information (15%)
   if (profile.interests && profile.interests.length > 0) confidence += 0.05;
-  if (profile.salary && profile.salary.expected > 0) confidence += 0.05;
+  if (profile.salary && profile.salary.expected && profile.salary.expected > 0) confidence += 0.05;
   if (profile.location && profile.location.current) confidence += 0.05;
   totalFactors += 0.15;
 
@@ -321,25 +321,25 @@ function mergeProfiles(
 
       // Merge experience (take the higher values)
       if (newProfile.experience) {
+        const currentYears = mergedProfile.experience?.years || 0;
+        const currentMonths = mergedProfile.experience?.months || 0;
+        const newYears = newProfile.experience.years || 0;
+        const newMonths = newProfile.experience.months || 0;
+        
         mergedProfile.experience = {
-          years: Math.max(
-            mergedProfile.experience.years,
-            newProfile.experience.years || 0
-          ),
-          months: Math.max(
-            mergedProfile.experience.months,
-            newProfile.experience.months || 0
-          ),
+          years: Math.max(currentYears, newYears),
+          months: Math.max(currentMonths, newMonths),
+          length: Math.max(currentYears, newYears),
           description:
             newProfile.experience.description ||
-            mergedProfile.experience.description,
+            mergedProfile.experience?.description,
         };
       }
 
       // Merge skills (avoid duplicates, keep higher confidence)
       if (newProfile.skills) {
         const existingSkills = new Map(
-          mergedProfile.skills.map((s) => [s.name.toLowerCase(), s])
+          (mergedProfile.skills || []).map((s) => [s.name.toLowerCase(), s])
         );
         for (const newSkill of newProfile.skills) {
           const existing = existingSkills.get(newSkill.name.toLowerCase());
@@ -356,10 +356,10 @@ function mergeProfiles(
       // Merge education (avoid duplicates)
       if (newProfile.education) {
         const existingEducation = new Map(
-          mergedProfile.education.map((e) => [e.degree + e.institution, e])
+          (mergedProfile.education || []).map((e) => [(e.degree || "") + (e.institution || ""), e])
         );
         for (const newEducation of newProfile.education) {
-          const key = newEducation.degree + newEducation.institution;
+          const key = (newEducation.degree || "") + (newEducation.institution || "");
           if (!existingEducation.has(key)) {
             existingEducation.set(key, newEducation);
           }
@@ -378,7 +378,7 @@ function mergeProfiles(
         mergedProfile.interests = [...mergedProfile.interests, ...newInterests];
       }
 
-      if (newProfile.salary && newProfile.salary.expected > 0) {
+      if (newProfile.salary && newProfile.salary.expected && newProfile.salary.expected > 0) {
         mergedProfile.salary = newProfile.salary;
       }
 
@@ -394,11 +394,11 @@ function mergeProfiles(
     case "append":
       // Append new data to existing data
       if (newProfile.skills) {
-        mergedProfile.skills = [...mergedProfile.skills, ...newProfile.skills];
+        mergedProfile.skills = [...(mergedProfile.skills || []), ...newProfile.skills];
       }
       if (newProfile.education) {
         mergedProfile.education = [
-          ...mergedProfile.education,
+          ...(mergedProfile.education || []),
           ...newProfile.education,
         ];
       }
@@ -502,7 +502,7 @@ export async function GET(request: NextRequest) {
           name: profile.name,
           email: profile.email,
           experience: profile.experience,
-          skills: profile.skills.slice(0, 5), // Top 5 skills
+          skills: profile.skills?.slice(0, 5) || [], // Top 5 skills
           confidence: profile.confidence,
         };
         break;
@@ -540,8 +540,11 @@ export async function GET(request: NextRequest) {
     }
 
     const response: ApiResponse = {
-      profile: formattedProfile,
-      sessionId: sessionId || null,
+      success: true,
+      data: {
+        profile: formattedProfile,
+        sessionId: sessionId || null,
+      },
       message: "Profile retrieved successfully",
     };
 
@@ -695,13 +698,16 @@ export async function PUT(request: NextRequest) {
 
     // Add warnings to response if any
     const response: ApiResponse = {
-      profile: mergedProfile,
-      sessionId: targetSessionId,
+      success: true,
+      data: {
+        profile: mergedProfile,
+        sessionId: targetSessionId,
+        warnings:
+          profileValidation.warnings.length > 0
+            ? profileValidation.warnings
+            : undefined,
+      },
       message: "Profile updated successfully",
-      warnings:
-        profileValidation.warnings.length > 0
-          ? profileValidation.warnings
-          : undefined,
     };
 
     return createSuccessResponse(response);
@@ -770,8 +776,9 @@ export async function POST(request: NextRequest) {
       if (!profile) {
         return createErrorResponse(
           {
-            code: "MISSING_PROFILE",
+            code: "PROFILE_RETRIEVAL_ERROR",
             message: "Profile is required for analysis",
+            severity: "high",
             timestamp: new Date(),
           },
           400
@@ -782,7 +789,10 @@ export async function POST(request: NextRequest) {
       const analysis = analyzeProfileFit(profile, jobRequirements);
 
       const response: ApiResponse = {
-        analysis,
+        success: true,
+        data: {
+          analysis,
+        },
         message: "Profile analysis completed",
       };
 
@@ -832,7 +842,7 @@ function analyzeProfileFit(
     const requiredSkills = jobRequirements.skills.map((s: string) =>
       s.toLowerCase()
     );
-    const profileSkills = profile.skills.map((s) => s.name.toLowerCase());
+    const profileSkills = (profile.skills || []).map((s) => s.name.toLowerCase());
     const matchedSkills = requiredSkills.filter((skill: string) =>
       profileSkills.includes(skill)
     );
@@ -843,7 +853,7 @@ function analyzeProfileFit(
   if (jobRequirements?.experience && profile.experience) {
     const requiredYears = jobRequirements.experience.min || 0;
     const profileYears =
-      profile.experience.years + profile.experience.months / 12;
+      (profile.experience?.years || 0) + (profile.experience?.months || 0) / 12;
     analysis.experienceMatch = Math.min(profileYears / requiredYears, 1);
   }
 
