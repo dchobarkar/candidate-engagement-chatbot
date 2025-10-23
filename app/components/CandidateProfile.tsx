@@ -154,19 +154,21 @@ export const CanProf = memo(
     };
 
     // Get skill level color
-    const getSkillLevelColor = (level: SkillLevel) => {
-      switch (level) {
-        case SkillLevel.EXPERT:
-          return "text-purple-600 bg-purple-100";
-        case SkillLevel.ADVANCED:
-          return "text-blue-600 bg-blue-100";
-        case SkillLevel.INTERMEDIATE:
-          return "text-green-600 bg-green-100";
-        case SkillLevel.BEGINNER:
-          return "text-gray-600 bg-gray-100";
-        default:
-          return "text-gray-600 bg-gray-100";
+    const getSkillLevelColor = (level: SkillLevel | string) => {
+      const levelStr = typeof level === "string" ? level : String(level);
+      if (levelStr === SkillLevel.EXPERT || levelStr === "Expert") {
+        return "text-purple-600 bg-purple-100";
       }
+      if (levelStr === SkillLevel.ADVANCED || levelStr === "Advanced") {
+        return "text-blue-600 bg-blue-100";
+      }
+      if (levelStr === SkillLevel.INTERMEDIATE || levelStr === "Intermediate") {
+        return "text-green-600 bg-green-100";
+      }
+      if (levelStr === SkillLevel.BEGINNER || levelStr === "Beginner") {
+        return "text-gray-600 bg-gray-100";
+      }
+      return "text-gray-600 bg-gray-100";
     };
 
     // Calculate overall profile completion
@@ -533,6 +535,73 @@ export const CanProf = memo(
   }
 );
 
+// Helper function to get input value for edit mode
+const getInputValue = (value: any, fieldKey: string): string => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  // Handle objects for input fields
+  if (
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    !(value instanceof Date)
+  ) {
+    if (fieldKey === "location") {
+      const loc = value as {
+        current?: string;
+        willingToRelocate?: boolean;
+        preferredLocations?: string[];
+      };
+      return loc.current || "";
+    }
+
+    if (fieldKey === "availability") {
+      const avail = value as {
+        startDate?: Date;
+        noticePeriod?: number;
+        preferredSchedule?: string;
+      };
+      return avail.preferredSchedule || "";
+    }
+
+    if (fieldKey === "experience") {
+      const exp = value as { years?: number; months?: number; length?: number };
+      return exp.years
+        ? String(exp.years)
+        : exp.length
+        ? String(exp.length)
+        : "";
+    }
+
+    if (fieldKey === "salaryExpectation" || fieldKey === "salary") {
+      const sal = value as
+        | { expected?: number; currency?: string; negotiable?: boolean }
+        | string;
+      if (typeof sal === "string") return sal;
+      if (sal.expected !== undefined) {
+        return String(sal.expected);
+      }
+      return "";
+    }
+
+    return "";
+  }
+
+  // Handle arrays
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  }
+
+  // Handle dates
+  if (value instanceof Date) {
+    return format(value, "yyyy-MM-dd");
+  }
+
+  // Handle primitives
+  return String(value);
+};
+
 // Helper function to format field values for display
 const formatFieldValue = (value: any, fieldKey: string): string => {
   if (value === null || value === undefined) {
@@ -540,9 +609,17 @@ const formatFieldValue = (value: any, fieldKey: string): string => {
   }
 
   // Handle objects
-  if (typeof value === "object" && !Array.isArray(value) && !(value instanceof Date)) {
+  if (
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    !(value instanceof Date)
+  ) {
     if (fieldKey === "location") {
-      const loc = value as { current?: string; willingToRelocate?: boolean; preferredLocations?: string[] };
+      const loc = value as {
+        current?: string;
+        willingToRelocate?: boolean;
+        preferredLocations?: string[];
+      };
       const parts: string[] = [];
       if (loc.current) parts.push(loc.current);
       if (loc.willingToRelocate) parts.push("Willing to relocate");
@@ -551,31 +628,41 @@ const formatFieldValue = (value: any, fieldKey: string): string => {
       }
       return parts.length > 0 ? parts.join(" • ") : "Not specified";
     }
-    
+
     if (fieldKey === "availability") {
-      const avail = value as { startDate?: Date; noticePeriod?: number; preferredSchedule?: string };
+      const avail = value as {
+        startDate?: Date;
+        noticePeriod?: number;
+        preferredSchedule?: string;
+      };
       const parts: string[] = [];
       if (avail.preferredSchedule) parts.push(avail.preferredSchedule);
       if (avail.noticePeriod) parts.push(`${avail.noticePeriod} days notice`);
       if (avail.startDate) {
-        parts.push(`Available from ${format(new Date(avail.startDate), "MMM d, yyyy")}`);
+        parts.push(
+          `Available from ${format(new Date(avail.startDate), "MMM d, yyyy")}`
+        );
       }
       return parts.length > 0 ? parts.join(" • ") : "Not specified";
     }
-    
+
     if (fieldKey === "experience") {
       const exp = value as { years?: number; months?: number; length?: number };
       if (exp.years !== undefined) {
-        return exp.months ? `${exp.years} years, ${exp.months} months` : `${exp.years} years`;
+        return exp.months
+          ? `${exp.years} years, ${exp.months} months`
+          : `${exp.years} years`;
       }
       if (exp.length !== undefined) {
         return `${exp.length} years`;
       }
       return "Not specified";
     }
-    
+
     if (fieldKey === "salaryExpectation" || fieldKey === "salary") {
-      const sal = value as { expected?: number; currency?: string; negotiable?: boolean } | string;
+      const sal = value as
+        | { expected?: number; currency?: string; negotiable?: boolean }
+        | string;
       if (typeof sal === "string") return sal;
       if (sal.expected !== undefined) {
         const currency = sal.currency || "USD";
@@ -584,7 +671,7 @@ const formatFieldValue = (value: any, fieldKey: string): string => {
       }
       return "Not specified";
     }
-    
+
     // For other objects, stringify them
     return JSON.stringify(value);
   }
@@ -687,13 +774,10 @@ function OverviewTab({
                   {isEditing ? (
                     field.type === "textarea" ? (
                       <textarea
-                        value={
-                          typeof editForm[field.key as keyof CandidateProfile] === "string"
-                            ? (editForm[field.key as keyof CandidateProfile] as string)
-                            : editForm[field.key as keyof CandidateProfile]
-                            ? String(editForm[field.key as keyof CandidateProfile])
-                            : ""
-                        }
+                        value={getInputValue(
+                          editForm[field.key as keyof CandidateProfile],
+                          field.key
+                        )}
                         onChange={(e) =>
                           onFieldChange(
                             field.key as keyof CandidateProfile,
@@ -706,31 +790,65 @@ function OverviewTab({
                     ) : field.key === "experience" ? (
                       <input
                         type="number"
-                        value={
-                          typeof editForm.experience === "object" && editForm.experience
-                            ? (editForm.experience as any).years || (editForm.experience as any).length || ""
-                            : ""
-                        }
+                        value={getInputValue(editForm.experience, "experience")}
                         onChange={(e) => {
                           const years = parseInt(e.target.value) || 0;
-                          onFieldChange(
-                            "experience",
-                            { years, months: 0, length: years }
-                          );
+                          onFieldChange("experience", {
+                            years,
+                            months: 0,
+                            length: years,
+                          });
                         }}
                         placeholder="Years of experience"
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
+                    ) : field.key === "location" ? (
+                      <input
+                        type="text"
+                        value={getInputValue(editForm.location, "location")}
+                        onChange={(e) => {
+                          const currentLocation =
+                            (editForm.location as any) || {};
+                          onFieldChange("location", {
+                            ...currentLocation,
+                            current: e.target.value,
+                          });
+                        }}
+                        placeholder="Current location"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    ) : field.key === "availability" ? (
+                      <select
+                        value={getInputValue(
+                          editForm.availability,
+                          "availability"
+                        )}
+                        onChange={(e) => {
+                          const currentAvailability =
+                            (editForm.availability as any) || {};
+                          onFieldChange("availability", {
+                            ...currentAvailability,
+                            preferredSchedule: e.target.value as
+                              | "Full-time"
+                              | "Part-time"
+                              | "Flexible"
+                              | "",
+                          });
+                        }}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select availability</option>
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Flexible">Flexible</option>
+                      </select>
                     ) : (
                       <input
                         type={field.type}
-                        value={
-                          typeof editForm[field.key as keyof CandidateProfile] === "string"
-                            ? (editForm[field.key as keyof CandidateProfile] as string)
-                            : editForm[field.key as keyof CandidateProfile]
-                            ? String(editForm[field.key as keyof CandidateProfile])
-                            : ""
-                        }
+                        value={getInputValue(
+                          editForm[field.key as keyof CandidateProfile],
+                          field.key
+                        )}
                         onChange={(e) =>
                           onFieldChange(
                             field.key as keyof CandidateProfile,
@@ -807,7 +925,7 @@ function SkillsTab({
   ) => void;
   onAddSkill: () => void;
   onRemoveSkill: (index: number) => void;
-  getSkillLevelColor: (level: SkillLevel) => string;
+  getSkillLevelColor: (level: SkillLevel | string) => string;
   getConfidenceColor: (confidence: number) => string;
 }) {
   const skills = editForm.skills || profile.skills || [];
