@@ -38,41 +38,40 @@ export interface CandidateProfile {
   name?: string;
   email?: string;
   phone?: string;
-  experience: {
-    length: number;
-    map(arg0: (exp: any, index: any) => JSX.Element): ReactNode;
-    years: number;
-    months: number;
+  experience?: {
+    years?: number;
+    months?: number;
+    length?: number;
     description?: string;
   };
-  skills: Array<{
+  skills?: Array<{
     name: string;
-    level: "Beginner" | "Intermediate" | "Advanced" | "Expert";
-    confidence: number; // 0-1
+    level?: "Beginner" | "Intermediate" | "Advanced" | "Expert";
+    confidence?: number; // 0-1
   }>;
-  education: Array<{
-    startDate: string;
-    endDate: any;
-    description: ReactNode;
-    degree: string;
-    institution: string;
+  education?: Array<{
+    startDate?: string;
+    endDate?: any;
+    description?: ReactNode;
+    degree?: string;
+    institution?: string;
     graduationYear?: number;
     gpa?: number;
   }>;
   interests: string[];
-  availability: {
-    startDate?: Date;
+  availability?: {
+    startDate?: Date | string;
     noticePeriod?: number; // in days
     preferredSchedule?: "Full-time" | "Part-time" | "Flexible";
   };
-  salary: {
-    expected: number;
-    currency: string;
-    negotiable: boolean;
+  salary?: {
+    expected?: number;
+    currency?: string;
+    negotiable?: boolean;
   };
-  location: {
-    current: string;
-    willingToRelocate: boolean;
+  location?: {
+    current?: string;
+    willingToRelocate?: boolean;
     preferredLocations?: string[];
   };
   confidence: number; // Overall confidence score 0-1
