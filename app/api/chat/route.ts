@@ -5,6 +5,7 @@ import { sessionManager } from "../../lib/session-manager";
 import { ConversationManager } from "../../lib/conversation-manager";
 import { DataExtractor } from "../../lib/data-extractor";
 import { LLMClient } from "../../lib/llm-client";
+import { jobDescription } from "../../data/job-description";
 import {
   ChatMessage,
   MessageRole,
@@ -234,37 +235,48 @@ export async function POST(request: NextRequest) {
     // CONVERSATION PROCESSING
     // ========================================================================
     try {
-      // Initialize conversation manager
-      const conversationManager = new ConversationManager(session);
-
       // Initialize LLM client
-      const llmClient = new LLMClient();
+      const llmClient = new LLMClient({
+        apiKey: process.env.OPENAI_API_KEY || "",
+        model: "gpt-4",
+        temperature: 0.7,
+        maxTokens: 1000,
+        maxRetries: 3,
+        retryDelay: 1000,
+      });
 
       // Initialize data extractor
       const dataExtractor = new DataExtractor();
 
+      // Get job description from session or use default
+      const jobContext = session.jobContext || jobDescription;
+
+      // Initialize conversation manager
+      const conversationManager = new ConversationManager(
+        llmClient,
+        dataExtractor,
+        session,
+        jobContext
+      );
+
       // Process the message through conversation manager
-      const conversationResult = await conversationManager.processMessage(
+      const conversationResult = await conversationManager.processUserMessage(
         message,
-        {
-          llmClient,
-          dataExtractor,
-          sessionManager,
-        }
+        session.candidateProfile
       );
 
       // ========================================================================
       // RESPONSE PROCESSING
       // ========================================================================
       const assistantMessage: ChatMessage = {
-        id: conversationResult.messageId,
-        content: conversationResult.response,
+        id: crypto.randomUUID(),
+        content: conversationResult.content,
         role: MessageRole.ASSISTANT,
         timestamp: new Date(),
         sessionId: sessionId,
         metadata: {
           confidence: conversationResult.confidence,
-          extractedInfo: conversationResult.extractedInfo,
+          extractedInfo: conversationResult.extractedData,
           processingTime: Date.now() - startTime,
         },
         type: "",
@@ -285,15 +297,19 @@ export async function POST(request: NextRequest) {
       // SUCCESS RESPONSE
       // ========================================================================
       const response: ApiResponse = {
-        message: assistantMessage,
-        sessionId: sessionId,
-        confidence: conversationResult.confidence,
-        extractedInfo: conversationResult.extractedInfo,
-        processingTime: Date.now() - startTime,
-        rateLimit: {
-          remaining: rateLimitResult.remaining,
-          resetTime: rateLimitResult.resetTime,
+        success: true,
+        data: {
+          message: assistantMessage,
+          sessionId: sessionId,
+          confidence: conversationResult.confidence,
+          extractedInfo: conversationResult.extractedData,
+          processingTime: Date.now() - startTime,
+          rateLimit: {
+            remaining: rateLimitResult.remaining,
+            resetTime: rateLimitResult.resetTime,
+          },
         },
+        message: "Message processed successfully",
       };
 
       return createSuccessResponse(response);
