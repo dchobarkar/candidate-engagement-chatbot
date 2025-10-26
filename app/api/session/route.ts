@@ -76,7 +76,7 @@ const CreateSessionSchema = z.object({
       userAgent: z.string().optional(),
       ipAddress: z.string().optional(),
       referrer: z.string().optional(),
-      utmParams: z.record(z.string()).optional(),
+      utmParams: z.record(z.string(), z.string()).optional(),
     })
     .optional(),
 });
@@ -248,9 +248,15 @@ export async function POST(request: NextRequest) {
     const { candidateProfile, jobContext, metadata } = validationResult.data;
 
     // Create new session
+    // Use undefined if jobContext is incomplete (sessionManager will use default)
+    const jobDescription: any = jobContext && 
+      jobContext.id && 
+      jobContext.title && 
+      jobContext.company ? jobContext : undefined;
+    
     const newSession = sessionManager.createSession(
       candidateProfile,
-      jobContext
+      jobDescription
     );
 
     // Track session metadata
