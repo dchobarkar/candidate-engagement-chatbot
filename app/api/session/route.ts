@@ -274,12 +274,15 @@ export async function POST(request: NextRequest) {
 
     // Return success response
     const response: ApiResponse = {
-      session: newSession,
-      metadata: getSessionMetadata(newSession.id),
+      success: true,
+      data: {
+        session: newSession,
+        metadata: getSessionMetadata(newSession.id),
+      },
       message: "Session created successfully",
     };
 
-    return createSuccessResponse(response);
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error("Session creation error:", error);
 
