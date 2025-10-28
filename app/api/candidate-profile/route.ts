@@ -142,7 +142,7 @@ function createErrorResponse(
   );
 }
 
-function createSuccessResponse(data: any): NextResponse {
+function createSuccessResponse(data: unknown): NextResponse {
   return NextResponse.json(
     {
       success: true,
@@ -494,7 +494,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Format profile based on request
-    let formattedProfile: any = profile;
+    let formattedProfile: Partial<CandidateProfile> & { confidenceDetails?: unknown; history?: unknown } = profile;
 
     switch (format) {
       case "summary":
@@ -731,7 +731,7 @@ export async function PUT(request: NextRequest) {
 // OPTIONS HANDLER (for CORS)
 // ============================================================================
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
@@ -824,10 +824,19 @@ export async function POST(request: NextRequest) {
   }
 }
 
+interface ProfileAnalysis {
+  overallFit: number;
+  skillMatch: number;
+  experienceMatch: number;
+  recommendations: string[];
+  strengths: string[];
+  gaps: string[];
+}
+
 function analyzeProfileFit(
   profile: CandidateProfile,
-  jobRequirements?: any
-): any {
+  jobRequirements?: { skills?: string[]; experience?: { min?: number } }
+): ProfileAnalysis {
   const analysis = {
     overallFit: 0,
     skillMatch: 0,
