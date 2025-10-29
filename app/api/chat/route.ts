@@ -11,6 +11,7 @@ import {
   MessageRole,
   ApiError,
   ApiResponse,
+  ConversationSession,
 } from "../../lib/types";
 
 // ============================================================================
@@ -96,7 +97,7 @@ function createErrorResponse(
   );
 }
 
-function createSuccessResponse(data: any): NextResponse {
+function createSuccessResponse(data: unknown): NextResponse {
   return NextResponse.json(
     {
       success: true,
@@ -112,7 +113,7 @@ function createSuccessResponse(data: any): NextResponse {
 
 async function validateSession(
   sessionId: string
-): Promise<{ valid: boolean; session?: any; error?: ApiError }> {
+): Promise<{ valid: boolean; session?: ConversationSession; error?: ApiError }> {
   try {
     const session = sessionManager.getSession(sessionId);
 
@@ -219,7 +220,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { message, sessionId, metadata } = validationResult.data;
+    const { message, sessionId } = validationResult.data;
 
     // ========================================================================
     // SESSION VALIDATION
@@ -347,7 +348,7 @@ export async function POST(request: NextRequest) {
 // OPTIONS HANDLER (for CORS)
 // ============================================================================
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
@@ -363,7 +364,7 @@ export async function OPTIONS(request: NextRequest) {
 // HEALTH CHECK (for monitoring)
 // ============================================================================
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   return NextResponse.json(
     {
       status: "healthy",
