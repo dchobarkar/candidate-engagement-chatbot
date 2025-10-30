@@ -105,7 +105,7 @@ function createErrorResponse(
   );
 }
 
-function createSuccessResponse(data: any): NextResponse {
+function createSuccessResponse(data: unknown): NextResponse {
   return NextResponse.json(
     {
       success: true,
@@ -249,14 +249,9 @@ export async function POST(request: NextRequest) {
 
     // Create new session
     // Use undefined if jobContext is incomplete (sessionManager will use default)
-    const jobDescription: any = jobContext && 
-      jobContext.id && 
-      jobContext.title && 
-      jobContext.company ? jobContext : undefined;
-    
     const newSession = sessionManager.createSession(
       candidateProfile,
-      jobDescription
+      undefined // sessionManager will use default jobDescription
     );
 
     // Track session metadata
@@ -349,8 +344,11 @@ export async function GET(request: NextRequest) {
       });
 
       const response: ApiResponse = {
-        session,
-        metadata: getSessionMetadata(sessionId),
+        success: true,
+        data: {
+          session,
+          metadata: getSessionMetadata(sessionId),
+        },
         message: "Session retrieved successfully",
       };
 
@@ -392,12 +390,15 @@ export async function GET(request: NextRequest) {
     }));
 
     const response: ApiResponse = {
-      sessions: sessionsWithMetadata,
-      pagination: {
-        total: sessions.length,
-        limit: limit || sessions.length,
-        offset: startIndex,
-        hasMore: endIndex < sessions.length,
+      success: true,
+      data: {
+        sessions: sessionsWithMetadata,
+        pagination: {
+          total: sessions.length,
+          limit: limit || sessions.length,
+          offset: startIndex,
+          hasMore: endIndex < sessions.length,
+        },
       },
       message: "Sessions retrieved successfully",
     };
@@ -450,8 +451,9 @@ export async function DELETE(request: NextRequest) {
       sessionMetadataStore.delete(sessionId);
 
       const response: ApiResponse = {
+        success: true,
+        data: { sessionId },
         message: "Session deleted successfully",
-        sessionId,
       };
 
       return createSuccessResponse(response);
@@ -463,25 +465,29 @@ export async function DELETE(request: NextRequest) {
       const allSessions = sessionManager.getAllSessions();
       const activeSessionIds = new Set(allSessions.map((s) => s.id));
 
-      for (const [sessionId, metadata] of sessionMetadataStore.entries()) {
-        if (!activeSessionIds.has(sessionId)) {
-          sessionMetadataStore.delete(sessionId);
+      for (const [id] of sessionMetadataStore.entries()) {
+        if (!activeSessionIds.has(id)) {
+          sessionMetadataStore.delete(id);
         }
       }
 
       const response: ApiResponse = {
+        success: true,
+        data: {
+          deletedCount,
+          totalSessions: sessionManager.getSessionCount(),
+        },
         message: "Expired sessions cleaned up successfully",
-        deletedCount,
-        totalSessions: sessionManager.getSessionCount(),
       };
 
       return createSuccessResponse(response);
     } else {
       return createErrorResponse(
         {
-          code: "INVALID_REQUEST",
+          code: "VALIDATION_ERROR",
           message: "Either sessionId or cleanup=true parameter is required",
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -506,7 +512,7 @@ export async function DELETE(request: NextRequest) {
 // OPTIONS HANDLER (for CORS)
 // ============================================================================
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
@@ -531,9 +537,10 @@ export async function PATCH(request: NextRequest) {
     if (!sessionId) {
       return createErrorResponse(
         {
-          code: "MISSING_SESSION_ID",
+          code: "MISSING_REQUIRED_FIELD",
           message: "Session ID is required",
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -618,8 +625,9 @@ export async function PATCH(request: NextRequest) {
     }
 
     const response: ApiResponse = {
+      success: true,
+      data: { sessionId },
       message: `Session ${action} successful`,
-      sessionId,
     };
 
     return createSuccessResponse(response);
