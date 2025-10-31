@@ -7,9 +7,7 @@ import { useChatStore } from "../lib/store";
 import { useSession, useJob } from "../lib/hooks";
 
 const ChatInterface = lazy(() =>
-  import("../components/ChatInterface").then((module) => ({
-    default: module.ChatInterface,
-  }))
+  import("../components/ChatInterface")
 );
 const JobInfo = lazy(() =>
   import("../components/JobInfo").then((module) => ({
@@ -24,7 +22,6 @@ const ErrorDisplay = lazy(() =>
 
 const Page = () => {
   const { currentSession, initializeSession } = useSession();
-  const { jobContext } = useJob();
   const { isLoading, error } = useChatStore();
 
   // Initialize session on component mount
