@@ -35,7 +35,7 @@ export const CanProf = memo(
     const isLoading = useChatStore((state) => state.isLoading);
 
     // Local error state (can be extended to use store error)
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
 
     // Validation function
     const validateProfile = useCallback(
@@ -64,7 +64,7 @@ export const CanProf = memo(
     }, [candidateProfile]);
 
     // Handle form field changes
-    const handleFieldChange = (field: keyof CandidateProfile, value: any) => {
+    const handleFieldChange = (field: keyof CandidateProfile, value: unknown) => {
       setEditForm((prev) => ({
         ...prev,
         [field]: value,
@@ -75,7 +75,7 @@ export const CanProf = memo(
     const handleSkillChange = (
       index: number,
       field: keyof { name: string; level: SkillLevel; confidence: number },
-      value: any
+      value: unknown
     ) => {
       if (!editForm.skills) return;
 
@@ -536,7 +536,7 @@ export const CanProf = memo(
 );
 
 // Helper function to get input value for edit mode
-const getInputValue = (value: any, fieldKey: string): string => {
+const getInputValue = (value: unknown, fieldKey: string): string => {
   if (value === null || value === undefined) {
     return "";
   }
@@ -603,7 +603,7 @@ const getInputValue = (value: any, fieldKey: string): string => {
 };
 
 // Helper function to format field values for display
-const formatFieldValue = (value: any, fieldKey: string): string => {
+const formatFieldValue = (value: unknown, fieldKey: string): string => {
   if (value === null || value === undefined) {
     return "Not specified";
   }
@@ -703,7 +703,7 @@ function OverviewTab({
   profile: CandidateProfile;
   isEditing: boolean;
   editForm: Partial<CandidateProfile>;
-  onFieldChange: (field: keyof CandidateProfile, value: any) => void;
+  onFieldChange: (field: keyof CandidateProfile, value: unknown) => void;
   expandedSections: Set<string>;
   onToggleSection: (section: string) => void;
   getConfidenceColor: (confidence: number) => string;
@@ -808,7 +808,7 @@ function OverviewTab({
                         value={getInputValue(editForm.location, "location")}
                         onChange={(e) => {
                           const currentLocation =
-                            (editForm.location as any) || {};
+                            (editForm.location as Record<string, unknown>) || {};
                           onFieldChange("location", {
                             ...currentLocation,
                             current: e.target.value,
@@ -825,7 +825,7 @@ function OverviewTab({
                         )}
                         onChange={(e) => {
                           const currentAvailability =
-                            (editForm.availability as any) || {};
+                            (editForm.availability as Record<string, unknown>) || {};
                           onFieldChange("availability", {
                             ...currentAvailability,
                             preferredSchedule: e.target.value as
@@ -873,8 +873,7 @@ function OverviewTab({
         </div>
       ))}
 
-      {/* Confidence Scores */}
-      {profile.metadata?.confidence && (
+      {typeof profile.metadata?.confidence === "number" && (
         <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
           <h3 className="text-base sm:text-lg font-medium text-blue-900 mb-3">
             Profile Confidence
@@ -917,11 +916,11 @@ function SkillsTab({
   profile: CandidateProfile;
   isEditing: boolean;
   editForm: Partial<CandidateProfile>;
-  onFieldChange: (field: keyof CandidateProfile, value: any) => void;
+  onFieldChange: (field: keyof CandidateProfile, value: unknown) => void;
   onSkillChange: (
     index: number,
     field: keyof { name: string; level: SkillLevel; confidence: number },
-    value: any
+    value: unknown
   ) => void;
   onAddSkill: () => void;
   onRemoveSkill: (index: number) => void;
@@ -1071,7 +1070,7 @@ function ExperienceTab({
   profile: CandidateProfile;
   isEditing: boolean;
   editForm: Partial<CandidateProfile>;
-  onFieldChange: (field: keyof CandidateProfile, value: any) => void;
+  onFieldChange: (field: keyof CandidateProfile, value: unknown) => void;
   expandedSections: Set<string>;
   onToggleSection: (section: string) => void;
 }) {
@@ -1168,7 +1167,7 @@ function EducationTab({
   profile: CandidateProfile;
   isEditing: boolean;
   editForm: Partial<CandidateProfile>;
-  onFieldChange: (field: keyof CandidateProfile, value: any) => void;
+  onFieldChange: (field: keyof CandidateProfile, value: unknown) => void;
   expandedSections: Set<string>;
   onToggleSection: (section: string) => void;
 }) {
