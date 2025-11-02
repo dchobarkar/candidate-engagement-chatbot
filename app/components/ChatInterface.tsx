@@ -19,17 +19,15 @@ import {
 } from "../lib/hooks";
 import { MessageBubble } from "./MessageBubble";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { ChatMessage, MessageRole } from "../lib/types";
+import { MessageRole, CandidateProfile } from "../lib/types";
 
 interface ChatInterfaceProps {
   className?: string;
-  onProfileUpdate?: (profile: any) => void;
-  onConversationComplete?: (summary: any) => void;
+  onProfileUpdate?: (profile: CandidateProfile) => void;
+  onConversationComplete?: (summary: unknown) => void;
 }
 const ChatInterface = ({
   className = "",
-  onProfileUpdate,
-  onConversationComplete,
 }: ChatInterfaceProps) => {
   // State management
   const [inputValue, setInputValue] = useState("");
@@ -52,10 +50,15 @@ const ChatInterface = ({
   const errorMessage = useErrorMessage();
   const canRetry = useCanRetry();
 
+  // Scroll to bottom
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   // Show/hide scroll button based on scroll position
   useEffect(() => {
@@ -96,11 +99,6 @@ const ChatInterface = ({
     element.style.height = "auto";
     element.style.height = `${Math.min(element.scrollHeight, 120)}px`;
   };
-
-  // Scroll to bottom
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  }, []);
 
   // Handle message submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -146,7 +144,6 @@ const ChatInterface = ({
 
     try {
       setLoading(true);
-    } catch (err) {
     } finally {
       setLoading(false);
     }
@@ -156,7 +153,7 @@ const ChatInterface = ({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e as any);
+      handleSubmit(e as unknown as React.FormEvent);
     }
   };
 
@@ -223,9 +220,9 @@ const ChatInterface = ({
               Welcome to {jobContext?.company || "our company"}!
             </h3>
             <p className="text-gray-600 max-w-md mx-auto">
-              I'm here to help you learn more about the{" "}
+              I&apos;m here to help you learn more about the{" "}
               {jobContext?.title || "position"} and answer any questions you
-              might have. Let's start a conversation!
+              might have. Let&apos;s start a conversation!
             </p>
           </div>
         )}
