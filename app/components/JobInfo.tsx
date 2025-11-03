@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 
 import { useJob } from "../lib/hooks";
-import { JobDescription, JobType, SkillLevel } from "../lib/types";
+import { JobDescription, JobType } from "../lib/types";
 import { format } from "date-fns";
 
 interface JobInfoProps {
@@ -535,7 +535,7 @@ export function JobInfo({
                         | boolean
                         | React.ReactElement<
                             unknown,
-                            string | React.JSXElementConstructor<any>
+                            string | React.JSXElementConstructor<unknown>
                           >
                         | Iterable<React.ReactNode>
                         | React.ReactPortal
@@ -547,7 +547,7 @@ export function JobInfo({
                             | React.ReactPortal
                             | React.ReactElement<
                                 unknown,
-                                string | React.JSXElementConstructor<any>
+                                string | React.JSXElementConstructor<unknown>
                               >
                             | Iterable<React.ReactNode>
                             | null
@@ -698,9 +698,16 @@ export function JobCard({
     }
   };
 
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(job);
+    }
+  };
+
   return (
     <div
       className={`bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer ${className}`}
+      onClick={handleCardClick}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
