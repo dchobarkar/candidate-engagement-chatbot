@@ -132,9 +132,6 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       months: 0,
       description: "Senior backend engineer with microservices expertise",
       length: 0,
-      map: function (arg0: (exp: any, index: any) => JSX.Element): ReactNode {
-        throw new Error("Function not implemented.");
-      },
     },
     skills: [
       { name: "Python", level: SkillLevel.EXPERT, confidence: 0.95 },
@@ -454,7 +451,7 @@ export const createTestSession = (
 
   return {
     id: `test-session-${Date.now()}`,
-    messages: [],
+    messages,
     candidateProfile: candidate,
     jobContext: jobDescription,
     status: "active",
