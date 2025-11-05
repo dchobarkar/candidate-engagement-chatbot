@@ -10,10 +10,10 @@ import { DataExtractor } from "./data-extractor";
 import { Logger } from "./logger";
 
 export interface ConversationState {
-  stageTransitions: any;
+  stageTransitions: Record<string, unknown>;
   currentStage: unknown;
   stageProgress: number; // 0-100
-  extractedInfo: Record<string, any>;
+  extractedInfo: Record<string, unknown>;
   confidenceScores: Record<string, number>;
   conversationFlow: ConversationFlow[];
   lastActivity: Date;
@@ -23,7 +23,7 @@ export interface ConversationState {
 export interface ConversationFlow {
   stage: unknown;
   messages: ChatMessage[];
-  extractedData: Record<string, any>;
+  extractedData: Record<string, unknown>;
   confidence: number;
   timestamp: Date;
   duration: number; // in seconds
@@ -380,10 +380,9 @@ export class ConversationManager {
    * Post-process LLM response
    */
   private postProcessResponse(
-    response: LLMResponse,
-    context: ConversationContext
+    response: LLMResponse
   ): LLMResponse {
-    let processedResponse = { ...response };
+    const processedResponse = { ...response };
 
     // Enhance response based on conversation stage
     processedResponse.content = this.enhanceResponseForStage(
@@ -522,7 +521,7 @@ export class ConversationManager {
   private async extractInformationFromConversation(
     userMessage: string,
     assistantResponse: string
-  ): Promise<Record<string, any>> {
+  ): Promise<Record<string, unknown>> {
     try {
       const conversationText = `${userMessage} ${assistantResponse}`;
       const extractedData = await this.dataExtractor.extractCandidateInfo(
@@ -541,7 +540,7 @@ export class ConversationManager {
   /**
    * Update extracted information and confidence scores
    */
-  private updateExtractedInfo(newData: Record<string, any>): void {
+  private updateExtractedInfo(newData: Record<string, unknown>): void {
     // Merge new data with existing data
     for (const [key, value] of Object.entries(newData)) {
       if (value !== undefined && value !== null) {
@@ -559,7 +558,7 @@ export class ConversationManager {
   /**
    * Calculate confidence score for extracted information
    */
-  private calculateInformationConfidence(key: string, value: any): number {
+  private calculateInformationConfidence(key: string, value: unknown): number {
     let confidence = 0.7; // Base confidence
 
     // Boost confidence for well-structured data
@@ -622,7 +621,7 @@ export class ConversationManager {
   private updateConversationFlow(
     userMessage: string,
     response: LLMResponse,
-    extractedData: Record<string, any>
+    extractedData: Record<string, unknown>
   ): void {
     const flowEntry: ConversationFlow = {
       stage: this.state.currentStage,
@@ -678,9 +677,9 @@ export class ConversationManager {
 
     // Calculate candidate fit based on extracted information
     let candidateFit = 0;
-    let qualificationGaps: string[] = [];
-    let strengths: string[] = [];
-    let areasOfConcern: string[] = [];
+    const qualificationGaps: string[] = [];
+    const strengths: string[] = [];
+    const areasOfConcern: string[] = [];
 
     // Analyze experience fit
     if (extractedInfo.experience) {
