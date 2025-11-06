@@ -12,7 +12,7 @@ export interface ExtractedData {
   location?: string;
   availability?: string;
   interests?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ExtractionResult {
@@ -27,8 +27,8 @@ export interface ExtractionPattern {
   name: string;
   pattern: RegExp;
   confidence: number;
-  transform?: (match: RegExpMatchArray) => any;
-  validation?: (value: any) => boolean;
+  transform?: (match: RegExpMatchArray) => unknown;
+  validation?: (value: unknown) => boolean;
 }
 
 export interface SkillMatch {
@@ -437,7 +437,7 @@ export class DataExtractor {
       const matches = text.match(pattern.pattern);
       if (matches) {
         try {
-          let value = pattern.transform
+          const value = pattern.transform
             ? pattern.transform(matches)
             : matches[0];
 
@@ -524,8 +524,7 @@ export class DataExtractor {
    */
   private calculateSkillConfidence(
     text: string,
-    keyword: string,
-    skillName: string
+    keyword: string
   ): number {
     let confidence = 0.5; // Base confidence
 
@@ -584,7 +583,6 @@ export class DataExtractor {
    */
   private determineSkillLevel(text: string, keyword: string): SkillLevel {
     const lowerText = text.toLowerCase();
-    const lowerKeyword = keyword.toLowerCase();
 
     // Expert level indicators
     if (
@@ -641,7 +639,6 @@ export class DataExtractor {
     let relevance = 0.5; // Base relevance
 
     const lowerText = text.toLowerCase();
-    const lowerKeyword = keyword.toLowerCase();
 
     // Boost relevance for job-related context
     if (
