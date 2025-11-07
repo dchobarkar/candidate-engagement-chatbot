@@ -260,7 +260,7 @@ export class ErrorHandler {
   createError(
     code: ErrorCode,
     message?: string,
-    details?: any,
+    details?: unknown,
     severity: ErrorSeverity = "medium"
   ): ApiError {
     return {
@@ -279,7 +279,7 @@ export class ErrorHandler {
   createErrorResponse(
     code: ErrorCode,
     message?: string,
-    details?: any,
+    details?: unknown,
     severity: ErrorSeverity = "medium",
     status?: number
   ): NextResponse {
@@ -304,7 +304,7 @@ export class ErrorHandler {
   // VALIDATION ERROR HANDLING
   // ========================================================================
 
-  handleValidationError(validationErrors: any[]): NextResponse {
+  handleValidationError(validationErrors: Array<{ path?: string[]; message: string; received?: unknown }>): NextResponse {
     const formattedErrors = validationErrors.map((error) => ({
       field: error.path?.join(".") || "unknown",
       message: error.message,
@@ -323,8 +323,8 @@ export class ErrorHandler {
   // ZOD VALIDATION ERROR HANDLING
   // ========================================================================
 
-  handleZodError(zodError: any): NextResponse {
-    const formattedErrors = zodError.errors.map((error: any) => ({
+  handleZodError(zodError: { errors: Array<{ path: string[]; message: string; code: string; received?: unknown }> }): NextResponse {
+    const formattedErrors = zodError.errors.map((error) => ({
       field: error.path.join("."),
       message: error.message,
       code: error.code,
@@ -344,7 +344,7 @@ export class ErrorHandler {
   // ========================================================================
 
   handleException(
-    error: any,
+    error: unknown,
     context?: {
       endpoint?: string;
       method?: string;
@@ -437,7 +437,7 @@ export class ErrorHandler {
     }
   }
 
-  private formatLogMessage(logEntry: any): string {
+  private formatLogMessage(logEntry: { timestamp: Date; error: ApiError; requestId?: string; endpoint?: string; method?: string }): string {
     const { timestamp, error, requestId, endpoint, method } = logEntry;
     return `[${timestamp.toISOString()}] ${error.code}: ${
       error.message
@@ -448,7 +448,7 @@ export class ErrorHandler {
   // ERROR RETRIEVAL AND ANALYTICS
   // ========================================================================
 
-  getErrorLog(limit: number = 100): any[] {
+  getErrorLog(limit: number = 100): Array<{ timestamp: Date; error: ApiError; requestId?: string; endpoint?: string; method?: string }> {
     return this.errorLog.slice(-limit);
   }
 
@@ -504,7 +504,7 @@ export class ErrorHandler {
   // SUCCESS RESPONSE CREATION
   // ========================================================================
 
-  createSuccessResponse(data: any, message?: string): NextResponse {
+  createSuccessResponse(data: unknown, message?: string): NextResponse {
     return NextResponse.json(
       {
         success: true,
@@ -527,7 +527,7 @@ export const errorHandler = ErrorHandler.getInstance();
 export function createError(
   code: ErrorCode,
   message?: string,
-  details?: any,
+  details?: unknown,
   severity?: ErrorSeverity
 ): ApiError {
   return errorHandler.createError(code, message, details, severity);
@@ -536,7 +536,7 @@ export function createError(
 export function createErrorResponse(
   code: ErrorCode,
   message?: string,
-  details?: any,
+  details?: unknown,
   severity?: ErrorSeverity,
   status?: number
 ): NextResponse {
@@ -550,7 +550,7 @@ export function createErrorResponse(
 }
 
 export function handleException(
-  error: any,
+  error: unknown,
   context?: {
     endpoint?: string;
     method?: string;
@@ -562,7 +562,7 @@ export function handleException(
 }
 
 export function createSuccessResponse(
-  data: any,
+  data: unknown,
   message?: string
 ): NextResponse {
   return errorHandler.createSuccessResponse(data, message);
