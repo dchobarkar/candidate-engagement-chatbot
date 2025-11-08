@@ -17,13 +17,13 @@ export interface ConversationContext {
   jobDescription: JobDescription;
   candidateProfile?: CandidateProfile;
   stage: unknown;
-  extractedInfo: Record<string, any>;
+  extractedInfo: Record<string, unknown>;
 }
 
 export interface LLMResponse {
   content: string;
   confidence: number;
-  extractedData?: Record<string, any>;
+  extractedData?: Record<string, unknown>;
   suggestedStage?: unknown;
   followUpQuestions?: string[];
 }
@@ -209,7 +209,7 @@ Response:`;
     context: ConversationContext
   ): Promise<OpenAI.Chat.ChatCompletion> {
     const maxRetries = this.config.maxRetries;
-    let lastError: any;
+    let lastError: unknown;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -236,10 +236,11 @@ Response:`;
         });
 
         return response;
-      } catch (error: any) {
+      } catch (error: unknown) {
         lastError = error;
+        const errorObj = error as { status?: number; message?: string };
 
-        if (error.status === 429) {
+        if (errorObj.status === 429) {
           // Rate limit error
           const delay = this.config.retryDelay * Math.pow(2, attempt - 1);
           this.logger.warn(`Rate limited, retrying in ${delay}ms`, {
@@ -247,7 +248,7 @@ Response:`;
             delay,
           });
           await this.delay(delay);
-        } else if (error.status >= 500) {
+        } else if (errorObj.status && errorObj.status >= 500) {
           // Server error
           const delay = this.config.retryDelay * attempt;
           this.logger.warn(`Server error, retrying in ${delay}ms`, {
@@ -342,8 +343,8 @@ Response:`;
   /**
    * Extract structured data from response content
    */
-  private extractStructuredData(content: string): Record<string, any> {
-    const data: Record<string, any> = {};
+  private extractStructuredData(content: string): Record<string, unknown> {
+    const data: Record<string, unknown> = {};
 
     // Extract email addresses
     const emailMatch = content.match(
@@ -446,9 +447,10 @@ Response:`;
   private generateFallbackResponse(
     userMessage: string,
     context: ConversationContext,
-    error: any
+    error: unknown
   ): LLMResponse {
-    this.logger.warn("Using fallback response", { error: error.message });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    this.logger.warn("Using fallback response", { error: errorMessage });
 
     let fallbackContent =
       "I apologize, but I'm experiencing technical difficulties. ";
