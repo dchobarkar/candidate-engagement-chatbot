@@ -28,7 +28,7 @@ export interface LogEntry {
   timestamp: Date;
   level: LogLevel;
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   requestId?: string;
   userId?: string;
   endpoint?: string;
@@ -93,7 +93,7 @@ export class Logger {
   critical(
     message: string,
     error?: Error,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     this.log(LogLevel.CRITICAL, message, context, error);
   }
@@ -125,7 +125,7 @@ export class Logger {
     requestId: string,
     statusCode: number,
     duration: number,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     const level = statusCode >= 400 ? LogLevel.ERROR : LogLevel.INFO;
     const message = `Request completed - ${statusCode}`;
@@ -146,7 +146,7 @@ export class Logger {
     endpoint: string,
     method: string,
     requestId: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     this.info("API call", {
       endpoint,
@@ -161,7 +161,7 @@ export class Logger {
     method: string,
     requestId: string,
     error: Error,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     this.error("API error", error, {
       endpoint,
@@ -210,7 +210,7 @@ export class Logger {
   logProfileUpdated(
     sessionId: string,
     profileId: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     this.info("Profile updated", {
       sessionId,
@@ -222,7 +222,7 @@ export class Logger {
   logProfileValidationFailed(
     sessionId: string,
     errors: string[],
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     this.warn("Profile validation failed", {
       sessionId,
@@ -239,7 +239,7 @@ export class Logger {
     sessionId: string,
     messageId: string,
     processingTime: number,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     this.info("Message processed", {
       sessionId,
@@ -252,7 +252,7 @@ export class Logger {
   logConversationError(
     sessionId: string,
     error: Error,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     this.error("Conversation error", error, {
       sessionId,
@@ -267,7 +267,7 @@ export class Logger {
   logPerformance(
     operation: string,
     duration: number,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): void {
     const level = duration > 5000 ? LogLevel.WARN : LogLevel.DEBUG;
     const message = `Performance: ${operation} took ${duration}ms`;
@@ -286,7 +286,7 @@ export class Logger {
   private log(
     level: LogLevel,
     message: string,
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
     error?: Error
   ): void {
     if (level < this.currentLogLevel) {
@@ -462,7 +462,7 @@ export class Logger {
   timeOperation<T>(
     operation: string,
     fn: () => T | Promise<T>,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): T | Promise<T> {
     const startTime = Date.now();
 
@@ -489,7 +489,7 @@ export class Logger {
   async timeAsyncOperation<T>(
     operation: string,
     fn: () => Promise<T>,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): Promise<T> {
     const startTime = Date.now();
 
@@ -521,32 +521,32 @@ export const logWarn = (message: string, context?: Record<string, any>) =>
 export const logError = (
   message: string,
   error?: Error,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) => logger.error(message, error, context);
 export const logCritical = (
   message: string,
   error?: Error,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) => logger.critical(message, error, context);
 
 export const logRequest = (
   request: NextRequest,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) => logger.logRequest(request, context);
 export const logResponse = (
   requestId: string,
   statusCode: number,
   duration: number,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) => logger.logResponse(requestId, statusCode, duration, context);
 
 export const timeOperation = <T>(
   operation: string,
   fn: () => T | Promise<T>,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) => logger.timeOperation(operation, fn, context);
 export const timeAsyncOperation = <T>(
   operation: string,
   fn: () => Promise<T>,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ) => logger.timeAsyncOperation(operation, fn, context);
