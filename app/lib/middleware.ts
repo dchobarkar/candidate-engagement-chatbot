@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { logger, logRequest, logResponse, timeAsyncOperation } from "./logger";
 import { handleException, createErrorResponse } from "./error-handler";
@@ -34,9 +35,9 @@ export class MiddlewareUtils {
   // ========================================================================
 
   static withRequestLogging<
-    T extends (...args: any[]) => Promise<NextResponse>
+    T extends (...args: unknown[]) => Promise<NextResponse>
   >(handler: T, config: MiddlewareConfig = {}): T {
-    return (async (...args: any[]) => {
+    return (async (...args: unknown[]) => {
       const request = args[0] as NextRequest;
       const context = this.createContext(request);
 
@@ -86,11 +87,11 @@ export class MiddlewareUtils {
   // ERROR HANDLING MIDDLEWARE
   // ========================================================================
 
-  static withErrorHandling<T extends (...args: any[]) => Promise<NextResponse>>(
+  static withErrorHandling<T extends (...args: unknown[]) => Promise<NextResponse>>(
     handler: T,
     config: MiddlewareConfig = {}
   ): T {
-    return (async (...args: any[]) => {
+    return (async (...args: unknown[]) => {
       const request = args[0] as NextRequest;
       const context = this.createContext(request);
 
@@ -124,9 +125,9 @@ export class MiddlewareUtils {
   // ========================================================================
 
   static withPerformanceMonitoring<
-    T extends (...args: any[]) => Promise<NextResponse>
+    T extends (...args: unknown[]) => Promise<NextResponse>
   >(handler: T, config: MiddlewareConfig = {}): T {
-    return (async (...args: any[]) => {
+    return (async (...args: unknown[]) => {
       const request = args[0] as NextRequest;
       const context = this.createContext(request);
 
@@ -146,11 +147,11 @@ export class MiddlewareUtils {
   // CORS MIDDLEWARE
   // ========================================================================
 
-  static withCORS<T extends (...args: any[]) => Promise<NextResponse>>(
+  static withCORS<T extends (...args: unknown[]) => Promise<NextResponse>>(
     handler: T,
     config: MiddlewareConfig = {}
   ): T {
-    return (async (...args: any[]) => {
+    return (async (...args: unknown[]) => {
       const request = args[0] as NextRequest;
 
       // Handle preflight requests
@@ -191,7 +192,7 @@ export class MiddlewareUtils {
   // RATE LIMITING MIDDLEWARE
   // ========================================================================
 
-  static withRateLimiting<T extends (...args: any[]) => Promise<NextResponse>>(
+  static withRateLimiting<T extends (...args: unknown[]) => Promise<NextResponse>>(
     handler: T,
     config: MiddlewareConfig = {},
     rateLimitConfig: {
@@ -205,7 +206,7 @@ export class MiddlewareUtils {
       { count: number; resetTime: number }
     >();
 
-    return (async (...args: any[]) => {
+    return (async (...args: unknown[]) => {
       const request = args[0] as NextRequest;
 
       if (config.enableRateLimiting !== false) {
@@ -252,9 +253,9 @@ export class MiddlewareUtils {
   // ========================================================================
 
   static withRequestValidation<
-    T extends (...args: any[]) => Promise<NextResponse>
-  >(handler: T, config: MiddlewareConfig = {}, validationSchema?: any): T {
-    return (async (...args: any[]) => {
+    T extends (...args: unknown[]) => Promise<NextResponse>
+  >(handler: T, config: MiddlewareConfig = {}, validationSchema?: z.ZodSchema): T {
+    return (async (...args: unknown[]) => {
       const request = args[0] as NextRequest;
 
       if (config.enableRequestValidation !== false && validationSchema) {
@@ -301,11 +302,11 @@ export class MiddlewareUtils {
   // COMPOSITE MIDDLEWARE
   // ========================================================================
 
-  static withAllMiddleware<T extends (...args: any[]) => Promise<NextResponse>>(
+  static withAllMiddleware<T extends (...args: unknown[]) => Promise<NextResponse>>(
     handler: T,
     config: MiddlewareConfig = {},
-    rateLimitConfig?: any,
-    validationSchema?: any
+    rateLimitConfig?: Record<string, unknown>,
+    validationSchema?: z.ZodSchema
   ): T {
     let wrappedHandler = handler;
 
@@ -360,54 +361,54 @@ export class MiddlewareUtils {
 // ============================================================================
 
 export const withRequestLogging = <
-  T extends (...args: any[]) => Promise<NextResponse>
+  T extends (...args: unknown[]) => Promise<NextResponse>
 >(
   handler: T,
   config?: MiddlewareConfig
 ) => MiddlewareUtils.withRequestLogging(handler, config);
 
 export const withErrorHandling = <
-  T extends (...args: any[]) => Promise<NextResponse>
+  T extends (...args: unknown[]) => Promise<NextResponse>
 >(
   handler: T,
   config?: MiddlewareConfig
 ) => MiddlewareUtils.withErrorHandling(handler, config);
 
 export const withPerformanceMonitoring = <
-  T extends (...args: any[]) => Promise<NextResponse>
+  T extends (...args: unknown[]) => Promise<NextResponse>
 >(
   handler: T,
   config?: MiddlewareConfig
 ) => MiddlewareUtils.withPerformanceMonitoring(handler, config);
 
-export const withCORS = <T extends (...args: any[]) => Promise<NextResponse>>(
+export const withCORS = <T extends (...args: unknown[]) => Promise<NextResponse>>(
   handler: T,
   config?: MiddlewareConfig
 ) => MiddlewareUtils.withCORS(handler, config);
 
 export const withRateLimiting = <
-  T extends (...args: any[]) => Promise<NextResponse>
+  T extends (...args: unknown[]) => Promise<NextResponse>
 >(
   handler: T,
   config?: MiddlewareConfig,
-  rateLimitConfig?: any
+  rateLimitConfig?: Record<string, unknown>
 ) => MiddlewareUtils.withRateLimiting(handler, config, rateLimitConfig);
 
 export const withRequestValidation = <
-  T extends (...args: any[]) => Promise<NextResponse>
+  T extends (...args: unknown[]) => Promise<NextResponse>
 >(
   handler: T,
   config?: MiddlewareConfig,
-  validationSchema?: any
+  validationSchema?: z.ZodSchema
 ) => MiddlewareUtils.withRequestValidation(handler, config, validationSchema);
 
 export const withAllMiddleware = <
-  T extends (...args: any[]) => Promise<NextResponse>
+  T extends (...args: unknown[]) => Promise<NextResponse>
 >(
   handler: T,
   config?: MiddlewareConfig,
-  rateLimitConfig?: any,
-  validationSchema?: any
+  rateLimitConfig?: Record<string, unknown>,
+  validationSchema?: z.ZodSchema
 ) =>
   MiddlewareUtils.withAllMiddleware(
     handler,
