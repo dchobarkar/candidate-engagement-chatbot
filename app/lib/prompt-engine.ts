@@ -4,12 +4,12 @@ import { Logger } from "./logger";
 export interface PromptContext {
   jobDescription: JobDescription;
   candidateProfile?: CandidateProfile;
-  conversationStage: Object;
+  conversationStage: Record<string, unknown>;
   conversationHistory: ChatMessage[];
-  extractedInfo: Record<string, any>;
+  extractedInfo: Record<string, unknown>;
   userIntent: string;
   previousResponses: string[];
-  sessionMetadata: Record<string, any>;
+  sessionMetadata: Record<string, unknown>;
 }
 
 export interface PromptTemplate {
@@ -17,7 +17,7 @@ export interface PromptTemplate {
   description: string;
   template: string;
   variables: string[];
-  stage: Object;
+  stage: Record<string, unknown>;
   priority: number;
   version: string;
 }
@@ -26,7 +26,7 @@ export interface PromptResult {
   prompt: string;
   confidence: number;
   template: string;
-  variables: Record<string, any>;
+  variables: Record<string, unknown>;
   optimization: PromptOptimization;
 }
 
@@ -40,7 +40,7 @@ export interface PromptOptimization {
 
 export interface ConversationMemory {
   keyPoints: string[];
-  userPreferences: Record<string, any>;
+  userPreferences: Record<string, unknown>;
   concerns: string[];
   positiveSignals: string[];
   followUpQuestions: string[];
@@ -51,7 +51,7 @@ export class PromptEngine {
   private logger: Logger;
   private promptTemplates: Map<string, PromptTemplate>;
   private conversationMemories: Map<string, ConversationMemory>;
-  private optimizationRules: Map<string, Function>;
+  private optimizationRules: Map<string, (...args: unknown[]) => unknown>;
   private systemPrompts: Map<string, string>;
 
   constructor() {
@@ -608,7 +608,7 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
     let prompt = template.template;
 
     // Replace template variables with actual values
-    const variables: Record<string, any> = {
+    const variables: Record<string, unknown> = {
       company: context.jobDescription.company,
       position: context.jobDescription.title,
       jobType: context.jobDescription.type,
@@ -842,8 +842,8 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
   /**
    * Extract variables from prompt
    */
-  private extractPromptVariables(prompt: string): Record<string, any> {
-    const variables: Record<string, any> = {};
+  private extractPromptVariables(prompt: string): Record<string, unknown> {
+    const variables: Record<string, unknown> = {};
     const matches = prompt.match(/\{([^}]+)\}/g);
 
     if (matches) {
@@ -893,7 +893,7 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
     return `Conversation has ${history.length} messages, ${userMessages.length} from user`;
   }
 
-  private formatExtractedInfo(info: Record<string, any>): string {
+  private formatExtractedInfo(info: Record<string, unknown>): string {
     if (Object.keys(info).length === 0) return "No information extracted yet";
 
     return Object.entries(info)
