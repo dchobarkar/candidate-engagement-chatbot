@@ -57,11 +57,6 @@ export class SessionManager {
           months: 0,
           description: "",
           length: 0,
-          map: function (
-            arg0: (exp: any, index: any) => JSX.Element
-          ): ReactNode {
-            throw new Error("Function not implemented.");
-          },
         },
         skills: [],
         education: [],
@@ -125,11 +120,6 @@ export class SessionManager {
           months: 0,
           description: "",
           length: 0,
-          map: function (
-            arg0: (exp: any, index: any) => JSX.Element
-          ): ReactNode {
-            throw new Error("Function not implemented.");
-          },
         },
         skills: [],
         education: [],
