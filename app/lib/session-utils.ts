@@ -125,7 +125,6 @@ export const clearSessionsFromStorage = (): void => {
 
 // SESSION ANALYTICS
 export const getSessionStats = (sessions: ConversationSession[]) => {
-  const now = new Date();
   const activeSessions = sessions.filter(
     (s) => s.status === SessionStatus.ACTIVE
   );
