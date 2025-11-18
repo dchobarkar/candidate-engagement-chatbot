@@ -1,9 +1,17 @@
+import { JSX, ReactNode } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 
 import { jobDescription } from "../data/job-description";
 import { sessionManager } from "./session-manager";
+import {
+  validateSession,
+  isSessionExpired,
+  saveSessionToStorage,
+  markSessionAsCompleted,
+  markSessionAsExpired,
+} from "./session-utils";
 import {
   ChatMessage,
   CandidateProfile,
@@ -13,14 +21,6 @@ import {
   ChatState,
   ChatActions,
 } from "./types";
-import {
-  validateSession,
-  isSessionExpired,
-  saveSessionToStorage,
-  markSessionAsCompleted,
-  markSessionAsExpired,
-} from "./session-utils";
-import { JSX, ReactNode } from "react";
 
 // STORE INTERFACE
 interface ChatStore extends ChatState, ChatActions {
@@ -46,9 +46,6 @@ const initialCandidateProfile: CandidateProfile = {
     months: 0,
     description: "",
     length: 0,
-    map: function (arg0: (exp: any, index: any) => JSX.Element): ReactNode {
-      throw new Error("Function not implemented.");
-    },
   },
   skills: [],
   education: [],
@@ -71,6 +68,7 @@ const initialCandidateProfile: CandidateProfile = {
   confidence: 0,
   lastUpdated: new Date(),
   metadata: undefined,
+  salaryExpectation: "",
 };
 
 const initialError: ApiError = {
@@ -156,6 +154,7 @@ export const useChatStore = create<ChatStore>()(
               code: "INVALID_SESSION",
               message: "Session is invalid or expired",
               timestamp: new Date(),
+              severity: "low",
             },
           });
         }
