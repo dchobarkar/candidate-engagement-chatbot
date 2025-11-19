@@ -1,10 +1,10 @@
-import { JSX, ReactNode } from "react";
+import { ReactNode } from "react";
 
 // CORE INTERFACES
 export interface JobDescription {
-  experienceDetails: any;
-  education: any;
-  postedDate: any;
+  experienceDetails: Record<string, unknown>;
+  education: Record<string, unknown>;
+  postedDate: Date | string;
   summary: ReactNode;
   id: string;
   title: string;
@@ -33,7 +33,7 @@ export interface JobDescription {
 
 export interface CandidateProfile {
   salaryExpectation: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
   id: string;
   name?: string;
   email?: string;
@@ -51,7 +51,7 @@ export interface CandidateProfile {
   }>;
   education?: Array<{
     startDate?: string;
-    endDate?: any;
+    endDate?: Date | string;
     description?: ReactNode;
     degree?: string;
     institution?: string;
@@ -80,7 +80,7 @@ export interface CandidateProfile {
 
 export interface ChatMessage {
   type: string;
-  status: any;
+  status?: string | number | boolean | null;
   id: string;
   content: string;
   role: "user" | "assistant" | "system";
@@ -95,7 +95,7 @@ export interface ChatMessage {
 }
 
 export interface ConversationSession {
-  lastActivity: any;
+  lastActivity: Date | string;
   id: string;
   messages: ChatMessage[];
   candidateProfile: CandidateProfile;
@@ -147,8 +147,8 @@ export interface ProfileUpdateResponse {
   confidence: number;
   changes: Array<{
     field: string;
-    oldValue: any;
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
     confidence: number;
   }>;
 }
@@ -230,7 +230,7 @@ export type ErrorSeverity = "low" | "medium" | "high" | "critical";
 export interface ApiError {
   code: ErrorCode;
   message: string;
-  details?: any;
+  details?: unknown;
   severity: ErrorSeverity;
   timestamp: Date;
 }
@@ -238,13 +238,13 @@ export interface ApiError {
 export interface ValidationError {
   field: string;
   message: string;
-  value?: any;
+  value?: unknown;
   code?: string;
 }
 
 export interface ApiResponse {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: ApiError;
   message?: string;
   requestId?: string;
@@ -286,7 +286,7 @@ export interface ConfidenceScore {
 
 export interface ExtractionResult {
   field: string;
-  value: any;
+  value: unknown;
   confidence: number;
   source: string; // Which message or context this was extracted from
 }
@@ -327,33 +327,36 @@ export enum SessionStatus {
 }
 
 // TYPE GUARDS
-export function isChatMessage(obj: any): obj is ChatMessage {
+export function isChatMessage(obj: unknown): obj is ChatMessage {
   return (
     typeof obj === "object" &&
-    typeof obj.id === "string" &&
-    typeof obj.content === "string" &&
-    ["user", "assistant", "system"].includes(obj.role) &&
-    obj.timestamp instanceof Date
+    obj !== null &&
+    typeof (obj as ChatMessage).id === "string" &&
+    typeof (obj as ChatMessage).content === "string" &&
+    ["user", "assistant", "system"].includes((obj as ChatMessage).role) &&
+    (obj as ChatMessage).timestamp instanceof Date
   );
 }
 
-export function isCandidateProfile(obj: any): obj is CandidateProfile {
+export function isCandidateProfile(obj: unknown): obj is CandidateProfile {
   return (
     typeof obj === "object" &&
-    typeof obj.id === "string" &&
-    typeof obj.confidence === "number" &&
-    obj.confidence >= 0 &&
-    obj.confidence <= 1
+    obj !== null &&
+    typeof (obj as CandidateProfile).id === "string" &&
+    typeof (obj as CandidateProfile).confidence === "number" &&
+    (obj as CandidateProfile).confidence >= 0 &&
+    (obj as CandidateProfile).confidence <= 1
   );
 }
 
-export function isJobDescription(obj: any): obj is JobDescription {
+export function isJobDescription(obj: unknown): obj is JobDescription {
   return (
     typeof obj === "object" &&
-    typeof obj.id === "string" &&
-    typeof obj.title === "string" &&
-    typeof obj.company === "string" &&
-    Array.isArray(obj.requirements) &&
-    Array.isArray(obj.responsibilities)
+    obj !== null &&
+    typeof (obj as JobDescription).id === "string" &&
+    typeof (obj as JobDescription).title === "string" &&
+    typeof (obj as JobDescription).company === "string" &&
+    Array.isArray((obj as JobDescription).requirements) &&
+    Array.isArray((obj as JobDescription).responsibilities)
   );
 }
