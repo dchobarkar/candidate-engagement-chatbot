@@ -181,11 +181,11 @@ export class ValidationUtils {
     return !isNaN(parsed.getTime());
   }
 
-  static isValidNumber(value: any): boolean {
+  static isValidNumber(value: unknown): boolean {
     return typeof value === "number" && !isNaN(value) && isFinite(value);
   }
 
-  static isValidBoolean(value: any): boolean {
+  static isValidBoolean(value: unknown): boolean {
     return typeof value === "boolean";
   }
 
@@ -332,50 +332,51 @@ export class ValidationUtils {
   // COMPOSITE VALIDATION
   // ========================================================================
 
-  static validateProfile(profile: any): {
+  static validateProfile(profile: unknown): {
     isValid: boolean;
     errors: string[];
     warnings: string[];
   } {
     const errors: string[] = [];
     const warnings: string[] = [];
+    const profileObj = profile as Record<string, unknown>;
 
     // Basic information validation
-    if (!profile.name && !profile.email) {
+    if (!profileObj.name && !profileObj.email) {
       errors.push("Either name or email is required");
     }
 
-    if (profile.email && !this.isValidEmail(profile.email)) {
+    if (profileObj.email && typeof profileObj.email === "string" && !this.isValidEmail(profileObj.email)) {
       errors.push("Invalid email format");
     }
 
-    if (profile.phone && !this.isValidPhone(profile.phone)) {
+    if (profileObj.phone && typeof profileObj.phone === "string" && !this.isValidPhone(profileObj.phone)) {
       errors.push("Invalid phone format");
     }
 
     // Experience validation
-    if (profile.experience) {
-      const expValidation = this.validateExperience(profile.experience);
+    if (profileObj.experience) {
+      const expValidation = this.validateExperience(profileObj.experience);
       errors.push(...expValidation.errors);
     }
 
     // Skills validation
-    if (profile.skills && Array.isArray(profile.skills)) {
-      const skillsValidation = this.validateSkills(profile.skills);
+    if (profileObj.skills && Array.isArray(profileObj.skills)) {
+      const skillsValidation = this.validateSkills(profileObj.skills);
       errors.push(...skillsValidation.errors);
       warnings.push(...skillsValidation.warnings);
     }
 
     // Education validation
-    if (profile.education && Array.isArray(profile.education)) {
-      const eduValidation = this.validateEducation(profile.education);
+    if (profileObj.education && Array.isArray(profileObj.education)) {
+      const eduValidation = this.validateEducation(profileObj.education);
       errors.push(...eduValidation.errors);
       warnings.push(...eduValidation.warnings);
     }
 
     // Salary validation
-    if (profile.salary) {
-      const salaryValidation = this.validateSalary(profile.salary);
+    if (profileObj.salary) {
+      const salaryValidation = this.validateSalary(profileObj.salary);
       errors.push(...salaryValidation.errors);
       warnings.push(...salaryValidation.warnings);
     }
@@ -393,11 +394,11 @@ export class ValidationUtils {
 
   static validateWithSchema<T>(
     schema: z.ZodSchema<T>,
-    data: any
+    data: unknown
   ): {
     success: boolean;
     data?: T;
-    errors?: any[];
+    errors?: Array<{ message: string; path?: string[] }>;
   } {
     try {
       const result = schema.safeParse(data);
@@ -416,11 +417,11 @@ export class ValidationUtils {
 
   static async validateWithSchemaAsync<T>(
     schema: z.ZodSchema<T>,
-    data: any
+    data: unknown
   ): Promise<{
     success: boolean;
     data?: T;
-    errors?: any[];
+    errors?: Array<{ message: string; path?: string[] }>;
   }> {
     try {
       const result = await schema.safeParseAsync(data);
@@ -449,9 +450,9 @@ export class ValidationUtils {
     field: string,
     code: string,
     message: string,
-    value?: any
+    value?: unknown
   ) {
-    return createError(code as any, message, { field, value }, "medium");
+    return createError(code as ErrorCode, message, { field, value }, "medium");
   }
 
   static createMissingFieldError(field: string) {
@@ -466,7 +467,7 @@ export class ValidationUtils {
   static createInvalidFormatError(
     field: string,
     expectedFormat: string,
-    value?: any
+    value?: unknown
   ) {
     return createError(
       "INVALID_FORMAT",
@@ -561,9 +562,9 @@ export const validatePhone = (phone: string) =>
 export const validateUUID = (uuid: string) => ValidationUtils.isValidUUID(uuid);
 export const validateURL = (url: string) => ValidationUtils.isValidURL(url);
 export const validateDate = (date: string) => ValidationUtils.isValidDate(date);
-export const validateNumber = (value: any) =>
+export const validateNumber = (value: unknown) =>
   ValidationUtils.isValidNumber(value);
-export const validateBoolean = (value: any) =>
+export const validateBoolean = (value: unknown) =>
   ValidationUtils.isValidBoolean(value);
 
 export const sanitizeString = (input: string) =>
