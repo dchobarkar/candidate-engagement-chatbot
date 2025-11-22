@@ -64,7 +64,10 @@ export const CanProf = memo(
     }, [candidateProfile]);
 
     // Handle form field changes
-    const handleFieldChange = (field: keyof CandidateProfile, value: unknown) => {
+    const handleFieldChange = (
+      field: keyof CandidateProfile,
+      value: unknown
+    ) => {
       setEditForm((prev) => ({
         ...prev,
         [field]: value,
@@ -808,7 +811,8 @@ function OverviewTab({
                         value={getInputValue(editForm.location, "location")}
                         onChange={(e) => {
                           const currentLocation =
-                            (editForm.location as Record<string, unknown>) || {};
+                            (editForm.location as Record<string, unknown>) ||
+                            {};
                           onFieldChange("location", {
                             ...currentLocation,
                             current: e.target.value,
@@ -825,7 +829,10 @@ function OverviewTab({
                         )}
                         onChange={(e) => {
                           const currentAvailability =
-                            (editForm.availability as Record<string, unknown>) || {};
+                            (editForm.availability as Record<
+                              string,
+                              unknown
+                            >) || {};
                           onFieldChange("availability", {
                             ...currentAvailability,
                             preferredSchedule: e.target.value as
@@ -979,7 +986,7 @@ function SkillsTab({
                     className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <select
-                    value={skill.level}
+                    value={skill.level ?? "beginner"}
                     onChange={(e) =>
                       onSkillChange(index, "level", e.target.value)
                     }
@@ -996,7 +1003,7 @@ function SkillsTab({
                       min="0"
                       max="1"
                       step="0.1"
-                      value={skill.confidence}
+                      value={skill.confidence ?? 0.5}
                       onChange={(e) =>
                         onSkillChange(
                           index,
@@ -1007,7 +1014,7 @@ function SkillsTab({
                       className="flex-1"
                     />
                     <span className="text-sm text-gray-600 w-12">
-                      {Math.round(skill.confidence * 100)}%
+                      {Math.round((skill.confidence ?? 0) * 100)}%
                     </span>
                     <button
                       onClick={() => onRemoveSkill(index)}
@@ -1037,17 +1044,17 @@ function SkillsTab({
                     </span>
                     <span
                       className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getSkillLevelColor(
-                        skill.level
+                        skill.level ?? "Beginner"
                       )}`}
                     >
-                      {skill.level}
+                      {skill.level ?? "Beginner"}
                     </span>
                     <span
                       className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(
-                        skill.confidence
+                        skill.confidence ?? 0
                       )}`}
                     >
-                      {Math.round(skill.confidence * 100)}% confidence
+                      {Math.round((skill.confidence ?? 0) * 100)}% confidence
                     </span>
                   </div>
                 </div>
@@ -1074,7 +1081,8 @@ function ExperienceTab({
   expandedSections: Set<string>;
   onToggleSection: (section: string) => void;
 }) {
-  const experiences = editForm.experience || profile.experience || [];
+  const experienceValue = editForm.experience || profile.experience;
+  const experiences = Array.isArray(experienceValue) ? experienceValue : [];
 
   return (
     <div className="space-y-4">
