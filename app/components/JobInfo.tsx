@@ -149,7 +149,7 @@ export function JobInfo({
               </h2>
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium border flex-shrink-0 ${getJobTypeStyle(
-                  selectedJob.type
+                  selectedJob.type as JobType
                 )}`}
               >
                 {selectedJob.type.replace("-", " ")}
@@ -421,7 +421,7 @@ export function JobInfo({
                     <span className="text-gray-600">Job Type:</span>
                     <span
                       className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getJobTypeStyle(
-                        selectedJob.type
+                        selectedJob.type as JobType
                       )}`}
                     >
                       {selectedJob.type.replace("-", " ")}
@@ -513,7 +513,9 @@ export function JobInfo({
                 </div>
                 {selectedJob.experienceDetails && (
                   <p className="text-gray-700">
-                    {selectedJob.experienceDetails}
+                    {typeof selectedJob.experienceDetails === "string"
+                      ? selectedJob.experienceDetails
+                      : JSON.stringify(selectedJob.experienceDetails, null, 2)}
                   </p>
                 )}
               </div>
@@ -526,48 +528,59 @@ export function JobInfo({
                   Education Requirements
                 </h3>
                 <div className="space-y-2">
-                  {selectedJob.education.map(
-                    (
-                      edu:
-                        | string
-                        | number
-                        | bigint
-                        | boolean
-                        | React.ReactElement<
-                            unknown,
-                            string | React.JSXElementConstructor<unknown>
-                          >
-                        | Iterable<React.ReactNode>
-                        | React.ReactPortal
-                        | Promise<
-                            | string
-                            | number
-                            | bigint
-                            | boolean
-                            | React.ReactPortal
-                            | React.ReactElement<
-                                unknown,
-                                string | React.JSXElementConstructor<unknown>
-                              >
-                            | Iterable<React.ReactNode>
-                            | null
-                            | undefined
-                          >
-                        | null
-                        | undefined,
-                      index: React.Key | null | undefined
-                    ) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <svg
-                          className="w-4 h-4 text-blue-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
+                  {Array.isArray(selectedJob.education) ? (
+                    selectedJob.education.map(
+                      (
+                        edu:
+                          | string
+                          | number
+                          | bigint
+                          | boolean
+                          | React.ReactElement<
+                              unknown,
+                              string | React.JSXElementConstructor<unknown>
+                            >
+                          | Iterable<React.ReactNode>
+                          | React.ReactPortal
+                          | Promise<
+                              | string
+                              | number
+                              | bigint
+                              | boolean
+                              | React.ReactPortal
+                              | React.ReactElement<
+                                  unknown,
+                                  string | React.JSXElementConstructor<unknown>
+                                >
+                              | Iterable<React.ReactNode>
+                              | null
+                              | undefined
+                            >
+                          | null
+                          | undefined,
+                        index: React.Key | null | undefined
+                      ) => (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-2"
                         >
-                          <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838l-2.727 1.17 1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
-                        </svg>
-                        <span className="text-gray-700">{edu}</span>
-                      </div>
+                          <svg
+                            className="w-4 h-4 text-blue-500"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838l-2.727 1.17 1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                          </svg>
+                          <span className="text-gray-700">{edu}</span>
+                        </div>
+                      )
                     )
+                  ) : (
+                    <div className="text-gray-700">
+                      {typeof selectedJob.education === "string"
+                        ? selectedJob.education
+                        : JSON.stringify(selectedJob.education, null, 2)}
+                    </div>
                   )}
                 </div>
               </div>
