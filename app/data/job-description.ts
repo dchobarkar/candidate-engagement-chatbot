@@ -75,10 +75,10 @@ export const jobDescription: JobDescription = {
   remote: true,
   createdAt: new Date("2024-01-15"),
   updatedAt: new Date("2024-01-15"),
-  experienceDetails: undefined,
-  education: undefined,
-  postedDate: undefined,
-  summary: undefined,
+  experienceDetails: {},
+  education: {},
+  postedDate: new Date("2024-01-15"),
+  summary: "",
 };
 
 // Additional job data for different positions (for future expansion)
