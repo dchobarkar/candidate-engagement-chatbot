@@ -18,10 +18,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       years: 6,
       months: 8,
       description: "Full-stack development with focus on React and Node.js",
-      length: 0,
-      map: function (): ReactNode {
-        throw new Error("Function not implemented.");
-      },
+      length: 6,
     },
     skills: [
       { name: "JavaScript", level: SkillLevel.EXPERT, confidence: 0.95 },
@@ -60,6 +57,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       currency: "USD",
       negotiable: true,
     },
+    salaryExpectation: "140000 USD",
     location: {
       current: "San Francisco, CA",
       willingToRelocate: false,
@@ -67,7 +65,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
     },
     confidence: 0.85,
     lastUpdated: new Date("2024-01-20"),
-    metadata: undefined,
+    metadata: {},
   },
   {
     id: "candidate-002",
@@ -78,10 +76,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       years: 4,
       months: 3,
       description: "Frontend specialist with strong UI/UX skills",
-      length: 0,
-      map: function (): ReactNode {
-        throw new Error("Function not implemented.");
-      },
+      length: 4,
     },
     skills: [
       { name: "JavaScript", level: SkillLevel.ADVANCED, confidence: 0.88 },
@@ -113,6 +108,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       currency: "USD",
       negotiable: false,
     },
+    salaryExpectation: "110000 USD",
     location: {
       current: "Oakland, CA",
       willingToRelocate: true,
@@ -120,7 +116,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
     },
     confidence: 0.72,
     lastUpdated: new Date("2024-01-18"),
-    metadata: undefined,
+    metadata: {},
   },
   {
     id: "candidate-003",
@@ -170,6 +166,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
       currency: "USD",
       negotiable: true,
     },
+    salaryExpectation: "160000 USD",
     location: {
       current: "Seattle, WA",
       willingToRelocate: true,
@@ -177,7 +174,7 @@ export const sampleCandidateProfiles: CandidateProfile[] = [
     },
     confidence: 0.95,
     lastUpdated: new Date("2024-01-22"),
-    metadata: undefined,
+    metadata: {},
   },
 ];
 
@@ -293,6 +290,7 @@ export const edgeCaseScenarios = {
         { name: "React", level: SkillLevel.BEGINNER, confidence: 0.25 },
       ],
       salary: { expected: 60000, currency: "USD", negotiable: true },
+      salaryExpectation: "60000 USD",
       confidence: 0.2,
     } as CandidateProfile,
     conversation: [
@@ -323,6 +321,7 @@ export const edgeCaseScenarios = {
         { name: "Management", level: SkillLevel.EXPERT, confidence: 0.92 },
       ],
       salary: { expected: 250000, currency: "USD", negotiable: false },
+      salaryExpectation: "250000 USD",
       confidence: 0.98,
     } as CandidateProfile,
     conversation: [
@@ -389,7 +388,7 @@ export const testSessions: ConversationSession[] = [
     createdAt: new Date("2024-01-20T10:00:00Z"),
     updatedAt: new Date("2024-01-20T10:01:05Z"),
     expiresAt: new Date("2024-01-27T10:00:00Z"),
-    lastActivity: undefined,
+    lastActivity: new Date("2024-01-20T10:00:00Z"),
   },
   {
     id: "session-002",
@@ -410,7 +409,7 @@ export const testSessions: ConversationSession[] = [
     createdAt: new Date("2024-01-20T11:00:00Z"),
     updatedAt: new Date("2024-01-20T11:00:35Z"),
     expiresAt: new Date("2024-01-27T11:00:00Z"),
-    lastActivity: undefined,
+    lastActivity: new Date("2024-01-20T10:00:00Z"),
   },
 ];
 
@@ -458,6 +457,6 @@ export const createTestSession = (
     createdAt: new Date(),
     updatedAt: new Date(),
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    lastActivity: undefined,
+    lastActivity: new Date("2024-01-20T10:00:00Z"),
   };
 };
