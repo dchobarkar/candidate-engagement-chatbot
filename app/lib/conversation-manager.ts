@@ -10,7 +10,7 @@ import { DataExtractor } from "./data-extractor";
 import { Logger } from "./logger";
 
 export interface ConversationState {
-  stageTransitions: Record<string, unknown>;
+  stageTransitions: number;
   currentStage: unknown;
   stageProgress: number; // 0-100
   extractedInfo: Record<string, unknown>;
@@ -88,6 +88,7 @@ export class ConversationManager {
       conversationFlow: [],
       lastActivity: new Date(),
       isActive: true,
+      stageTransitions: 0,
     };
   }
 
@@ -120,7 +121,7 @@ export class ConversationManager {
       );
 
       // Post-process the response
-      const postProcessedResponse = this.postProcessResponse(response, context);
+      const postProcessedResponse = this.postProcessResponse(response);
 
       // Extract information from the conversation
       const extractedData = await this.extractInformationFromConversation(
@@ -151,10 +152,11 @@ export class ConversationManager {
 
       return postProcessedResponse;
     } catch (error) {
-      this.logger.error("Error processing user message", {
-        error,
-        userMessage,
-      });
+      this.logger.error(
+        "Error processing user message",
+        error instanceof Error ? error : new Error(String(error)),
+        { userMessage }
+      );
       throw error;
     }
   }
@@ -379,9 +381,7 @@ export class ConversationManager {
   /**
    * Post-process LLM response
    */
-  private postProcessResponse(
-    response: LLMResponse
-  ): LLMResponse {
+  private postProcessResponse(response: LLMResponse): LLMResponse {
     const processedResponse = { ...response };
 
     // Enhance response based on conversation stage
@@ -729,14 +729,21 @@ export class ConversationManager {
     }
 
     // Analyze salary expectations
-    if (extractedInfo.salaryExpectation) {
+    if (
+      extractedInfo.salaryExpectation &&
+      typeof extractedInfo.salaryExpectation === "string"
+    ) {
       const candidateSalary = this.parseSalary(extractedInfo.salaryExpectation);
       const jobRange = jobRequirements.salary;
 
-      if (candidateSalary >= jobRange.min && candidateSalary <= jobRange.max) {
+      if (
+        jobRange &&
+        candidateSalary >= jobRange.min &&
+        candidateSalary <= jobRange.max
+      ) {
         candidateFit += 20;
         strengths.push("Salary expectations within range");
-      } else if (candidateSalary > jobRange.max) {
+      } else if (jobRange && candidateSalary > jobRange.max) {
         areasOfConcern.push("Salary expectations above range");
       }
     }
