@@ -118,10 +118,11 @@ export class DataExtractor {
 
       return processedData;
     } catch (error) {
-      this.logger.error("Error during information extraction", {
-        error,
-        conversationText,
-      });
+      this.logger.error(
+        "Error during information extraction",
+        error instanceof Error ? error : new Error(String(error)),
+        { conversationText }
+      );
       return {};
     }
   }
@@ -138,14 +139,17 @@ export class DataExtractor {
           /\b(?:my name is|i'm|i am|call me)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i,
         confidence: 0.9,
         transform: (match) => match[1].trim(),
-        validation: (value) => value.length > 2 && value.split(" ").length >= 2,
+        validation: (value) =>
+          typeof value === "string" &&
+          value.length > 2 &&
+          value.split(" ").length >= 2,
       },
       {
         name: "firstName",
         pattern: /\b(?:i'm|i am)\s+([A-Z][a-z]+)/i,
         confidence: 0.7,
         transform: (match) => match[1].trim(),
-        validation: (value) => value.length > 1,
+        validation: (value) => typeof value === "string" && value.length > 1,
       },
 
       // Email patterns
@@ -154,7 +158,8 @@ export class DataExtractor {
         pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/,
         confidence: 0.95,
         transform: (match) => match[0].toLowerCase(),
-        validation: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+        validation: (value) =>
+          typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
       },
 
       // Phone patterns
@@ -164,7 +169,8 @@ export class DataExtractor {
           /\b(?:\+?1[-.]?)?\(?([0-9]{3})\)?[-.]?([0-9]{3})[-.]?([0-9]{4})\b/,
         confidence: 0.9,
         transform: (match) => `(${match[1]}) ${match[2]}-${match[3]}`,
-        validation: (value) => /^\(\d{3}\)\s\d{3}-\d{4}$/.test(value),
+        validation: (value) =>
+          typeof value === "string" && /^\(\d{3}\)\s\d{3}-\d{4}$/.test(value),
       },
 
       // Experience patterns
@@ -195,7 +201,7 @@ export class DataExtractor {
           /\b(?:salary|pay|compensation)\s+(?:expectation|range|requirement)?\s*(?:of|is|around)?\s*\$?(\d{1,3}(?:,\d{3})*(?:k|K)?)\b/i,
         confidence: 0.8,
         transform: (match) => match[1],
-        validation: (value) => value.length > 0,
+        validation: (value) => typeof value === "string" && value.length > 0,
       },
       {
         name: "salaryRange",
@@ -203,7 +209,7 @@ export class DataExtractor {
           /\b(?:salary|pay)\s+(?:range|expectation)?\s*\$?(\d{1,3}(?:,\d{3})*(?:k|K)?)\s*-\s*\$?(\d{1,3}(?:,\d{3})*(?:k|K)?)\b/i,
         confidence: 0.75,
         transform: (match) => `${match[1]}-${match[2]}`,
-        validation: (value) => value.includes("-"),
+        validation: (value) => typeof value === "string" && value.includes("-"),
       },
 
       // Location patterns
@@ -213,7 +219,7 @@ export class DataExtractor {
           /\b(?:i'm in|i live in|located in|based in)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/i,
         confidence: 0.8,
         transform: (match) => match[1].trim(),
-        validation: (value) => value.length > 2,
+        validation: (value) => typeof value === "string" && value.length > 2,
       },
 
       // Availability patterns
@@ -223,7 +229,7 @@ export class DataExtractor {
           /\b(?:available|start|begin|ready)\s+(?:to|for)?\s+(?:immediately|asap|next month|in \d+ weeks?)\b/i,
         confidence: 0.85,
         transform: (match) => match[0].trim(),
-        validation: (value) => value.length > 0,
+        validation: (value) => typeof value === "string" && value.length > 0,
       },
     ];
   }
@@ -472,11 +478,7 @@ export class DataExtractor {
       for (const keyword of keywords) {
         if (lowerText.includes(keyword.toLowerCase())) {
           // Calculate confidence based on context
-          const confidence = this.calculateSkillConfidence(
-            text,
-            keyword,
-            skillName
-          );
+          const confidence = this.calculateSkillConfidence(text, keyword);
 
           // Determine skill level based on context
           const level = this.determineSkillLevel(text, keyword);
@@ -522,10 +524,7 @@ export class DataExtractor {
   /**
    * Calculate confidence for skill extraction
    */
-  private calculateSkillConfidence(
-    text: string,
-    keyword: string
-  ): number {
+  private calculateSkillConfidence(text: string, keyword: string): number {
     let confidence = 0.5; // Base confidence
 
     const lowerText = text.toLowerCase();
