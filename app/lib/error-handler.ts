@@ -146,6 +146,7 @@ export const ERROR_STATUS_CODES: Record<ErrorCode, number> = {
   PROFILE_VALIDATION_ERROR: 500,
   PROFILE_ANALYSIS_ERROR: 500,
   MESSAGE_PROCESSING_ERROR: 500,
+  MESSAGE_SEND_ERROR: 500,
 
   // Business Logic
   LOW_CONFIDENCE: 400,
@@ -218,6 +219,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   PROFILE_VALIDATION_ERROR: "Profile validation failed",
   PROFILE_ANALYSIS_ERROR: "Failed to analyze profile",
   MESSAGE_PROCESSING_ERROR: "Failed to process message",
+  MESSAGE_SEND_ERROR: "Failed to send message",
 
   // Business Logic
   LOW_CONFIDENCE: "Profile confidence below threshold",
@@ -304,7 +306,13 @@ export class ErrorHandler {
   // VALIDATION ERROR HANDLING
   // ========================================================================
 
-  handleValidationError(validationErrors: Array<{ path?: string[]; message: string; received?: unknown }>): NextResponse {
+  handleValidationError(
+    validationErrors: Array<{
+      path?: string[];
+      message: string;
+      received?: unknown;
+    }>
+  ): NextResponse {
     const formattedErrors = validationErrors.map((error) => ({
       field: error.path?.join(".") || "unknown",
       message: error.message,
@@ -323,7 +331,14 @@ export class ErrorHandler {
   // ZOD VALIDATION ERROR HANDLING
   // ========================================================================
 
-  handleZodError(zodError: { errors: Array<{ path: string[]; message: string; code: string; received?: unknown }> }): NextResponse {
+  handleZodError(zodError: {
+    errors: Array<{
+      path: string[];
+      message: string;
+      code: string;
+      received?: unknown;
+    }>;
+  }): NextResponse {
     const formattedErrors = zodError.errors.map((error) => ({
       field: error.path.join("."),
       message: error.message,
@@ -355,15 +370,39 @@ export class ErrorHandler {
     console.error("Unhandled exception:", error);
 
     // Determine error type and create appropriate response
-    if (error.name === "ValidationError") {
-      return this.handleValidationError(error.errors);
+    if (
+      error instanceof Error &&
+      error.name === "ValidationError" &&
+      "errors" in error
+    ) {
+      const validationError = error as {
+        errors: Array<{ path?: string[]; message: string; received?: unknown }>;
+      };
+      return this.handleValidationError(validationError.errors);
     }
 
-    if (error.name === "ZodError") {
-      return this.handleZodError(error);
+    if (
+      error instanceof Error &&
+      error.name === "ZodError" &&
+      "errors" in error
+    ) {
+      return this.handleZodError(
+        error as {
+          errors: Array<{
+            path: string[];
+            message: string;
+            code: string;
+            received?: unknown;
+          }>;
+        }
+      );
     }
 
-    if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED")
+    ) {
       return this.createErrorResponse(
         "EXTERNAL_API_ERROR",
         "External service unavailable",
@@ -372,11 +411,17 @@ export class ErrorHandler {
       );
     }
 
-    if (error.code === "RATE_LIMIT_EXCEEDED") {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "RATE_LIMIT_EXCEEDED"
+    ) {
+      const rateLimitError = error as { code: string; retryAfter?: number };
       return this.createErrorResponse(
         "RATE_LIMIT_EXCEEDED",
         "Rate limit exceeded",
-        { retryAfter: error.retryAfter },
+        { retryAfter: rateLimitError.retryAfter },
         "medium",
         429
       );
@@ -386,7 +431,7 @@ export class ErrorHandler {
     return this.createErrorResponse(
       "INTERNAL_SERVER_ERROR",
       "An unexpected error occurred",
-      { originalError: error.message },
+      { originalError: error instanceof Error ? error.message : String(error) },
       "critical"
     );
   }
@@ -437,7 +482,13 @@ export class ErrorHandler {
     }
   }
 
-  private formatLogMessage(logEntry: { timestamp: Date; error: ApiError; requestId?: string; endpoint?: string; method?: string }): string {
+  private formatLogMessage(logEntry: {
+    timestamp: Date;
+    error: ApiError;
+    requestId?: string;
+    endpoint?: string;
+    method?: string;
+  }): string {
     const { timestamp, error, requestId, endpoint, method } = logEntry;
     return `[${timestamp.toISOString()}] ${error.code}: ${
       error.message
@@ -448,7 +499,15 @@ export class ErrorHandler {
   // ERROR RETRIEVAL AND ANALYTICS
   // ========================================================================
 
-  getErrorLog(limit: number = 100): Array<{ timestamp: Date; error: ApiError; requestId?: string; endpoint?: string; method?: string }> {
+  getErrorLog(
+    limit: number = 100
+  ): Array<{
+    timestamp: Date;
+    error: ApiError;
+    requestId?: string;
+    endpoint?: string;
+    method?: string;
+  }> {
     return this.errorLog.slice(-limit);
   }
 
