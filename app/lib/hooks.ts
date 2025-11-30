@@ -232,7 +232,7 @@ export const useConversationStats = () => {
     hasExtractedInfo:
       candidateProfile.name ||
       candidateProfile.email ||
-      candidateProfile.skills.length > 0,
+      (candidateProfile.skills && candidateProfile.skills.length > 0),
     lastActivity:
       messages.length > 0 ? messages[messages.length - 1].timestamp : null,
   };
