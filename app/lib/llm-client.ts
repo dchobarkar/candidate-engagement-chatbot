@@ -83,7 +83,11 @@ export class LLMClient {
 
       return processedResponse;
     } catch (error) {
-      this.logger.error("Error processing message", { error, userMessage });
+      this.logger.error(
+        "Error processing message",
+        error instanceof Error ? error : new Error(String(error)),
+        { userMessage }
+      );
 
       // Return fallback response
       return this.generateFallbackResponse(userMessage, context, error);
@@ -515,7 +519,10 @@ Response:`;
       this.logger.info("OpenAI API connection successful");
       return true;
     } catch (error) {
-      this.logger.error("OpenAI API connection failed", { error });
+      this.logger.error(
+        "OpenAI API connection failed",
+        error instanceof Error ? error : new Error(String(error))
+      );
       return false;
     }
   }
