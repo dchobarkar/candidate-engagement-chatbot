@@ -74,19 +74,23 @@ export class Logger {
   // LOGGING METHODS
   // ========================================================================
 
-  debug(message: string, context?: Record<string, any>): void {
+  debug(message: string, context?: Record<string, unknown>): void {
     this.log(LogLevel.DEBUG, message, context);
   }
 
-  info(message: string, context?: Record<string, any>): void {
+  info(message: string, context?: Record<string, unknown>): void {
     this.log(LogLevel.INFO, message, context);
   }
 
-  warn(message: string, context?: Record<string, any>): void {
+  warn(message: string, context?: Record<string, unknown>): void {
     this.log(LogLevel.WARN, message, context);
   }
 
-  error(message: string, error?: Error, context?: Record<string, any>): void {
+  error(
+    message: string,
+    error?: Error,
+    context?: Record<string, unknown>
+  ): void {
     this.log(LogLevel.ERROR, message, context, error);
   }
 
@@ -102,7 +106,7 @@ export class Logger {
   // REQUEST LOGGING
   // ========================================================================
 
-  logRequest(request: NextRequest, context?: Record<string, any>): string {
+  logRequest(request: NextRequest, context?: Record<string, unknown>): string {
     const requestId = this.generateRequestId();
     const method = request.method;
     const url = request.url;
@@ -175,28 +179,40 @@ export class Logger {
   // SESSION LOGGING
   // ========================================================================
 
-  logSessionCreated(sessionId: string, context?: Record<string, any>): void {
+  logSessionCreated(
+    sessionId: string,
+    context?: Record<string, unknown>
+  ): void {
     this.info("Session created", {
       sessionId,
       ...context,
     });
   }
 
-  logSessionAccessed(sessionId: string, context?: Record<string, any>): void {
+  logSessionAccessed(
+    sessionId: string,
+    context?: Record<string, unknown>
+  ): void {
     this.debug("Session accessed", {
       sessionId,
       ...context,
     });
   }
 
-  logSessionExpired(sessionId: string, context?: Record<string, any>): void {
+  logSessionExpired(
+    sessionId: string,
+    context?: Record<string, unknown>
+  ): void {
     this.warn("Session expired", {
       sessionId,
       ...context,
     });
   }
 
-  logSessionDeleted(sessionId: string, context?: Record<string, any>): void {
+  logSessionDeleted(
+    sessionId: string,
+    context?: Record<string, unknown>
+  ): void {
     this.info("Session deleted", {
       sessionId,
       ...context,
@@ -512,11 +528,11 @@ export class Logger {
 
 export const logger = Logger.getInstance();
 
-export const logDebug = (message: string, context?: Record<string, any>) =>
+export const logDebug = (message: string, context?: Record<string, unknown>) =>
   logger.debug(message, context);
-export const logInfo = (message: string, context?: Record<string, any>) =>
+export const logInfo = (message: string, context?: Record<string, unknown>) =>
   logger.info(message, context);
-export const logWarn = (message: string, context?: Record<string, any>) =>
+export const logWarn = (message: string, context?: Record<string, unknown>) =>
   logger.warn(message, context);
 export const logError = (
   message: string,
