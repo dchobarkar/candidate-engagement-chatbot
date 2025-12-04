@@ -87,10 +87,9 @@ export class MiddlewareUtils {
   // ERROR HANDLING MIDDLEWARE
   // ========================================================================
 
-  static withErrorHandling<T extends (...args: unknown[]) => Promise<NextResponse>>(
-    handler: T,
-    config: MiddlewareConfig = {}
-  ): T {
+  static withErrorHandling<
+    T extends (...args: unknown[]) => Promise<NextResponse>
+  >(handler: T, config: MiddlewareConfig = {}): T {
     return (async (...args: unknown[]) => {
       const request = args[0] as NextRequest;
       const context = this.createContext(request);
@@ -192,7 +191,9 @@ export class MiddlewareUtils {
   // RATE LIMITING MIDDLEWARE
   // ========================================================================
 
-  static withRateLimiting<T extends (...args: unknown[]) => Promise<NextResponse>>(
+  static withRateLimiting<
+    T extends (...args: unknown[]) => Promise<NextResponse>
+  >(
     handler: T,
     config: MiddlewareConfig = {},
     rateLimitConfig: {
@@ -254,7 +255,11 @@ export class MiddlewareUtils {
 
   static withRequestValidation<
     T extends (...args: unknown[]) => Promise<NextResponse>
-  >(handler: T, config: MiddlewareConfig = {}, validationSchema?: z.ZodSchema): T {
+  >(
+    handler: T,
+    config: MiddlewareConfig = {},
+    validationSchema?: z.ZodSchema
+  ): T {
     return (async (...args: unknown[]) => {
       const request = args[0] as NextRequest;
 
@@ -269,7 +274,7 @@ export class MiddlewareUtils {
               return createErrorResponse(
                 "VALIDATION_ERROR",
                 "Request validation failed",
-                { errors: validationResult.error.errors },
+                { errors: validationResult.error.issues },
                 "medium"
               );
             }
@@ -302,7 +307,9 @@ export class MiddlewareUtils {
   // COMPOSITE MIDDLEWARE
   // ========================================================================
 
-  static withAllMiddleware<T extends (...args: unknown[]) => Promise<NextResponse>>(
+  static withAllMiddleware<
+    T extends (...args: unknown[]) => Promise<NextResponse>
+  >(
     handler: T,
     config: MiddlewareConfig = {},
     rateLimitConfig?: Record<string, unknown>,
@@ -316,11 +323,22 @@ export class MiddlewareUtils {
       config,
       validationSchema
     );
-    wrappedHandler = this.withRateLimiting(
-      wrappedHandler,
-      config,
-      rateLimitConfig
-    );
+    if (
+      rateLimitConfig &&
+      typeof rateLimitConfig === "object" &&
+      "windowMs" in rateLimitConfig &&
+      "maxRequests" in rateLimitConfig
+    ) {
+      wrappedHandler = this.withRateLimiting(
+        wrappedHandler,
+        config,
+        rateLimitConfig as {
+          windowMs: number;
+          maxRequests: number;
+          keyGenerator?: (request: NextRequest) => string;
+        }
+      );
+    }
     wrappedHandler = this.withCORS(wrappedHandler, config);
     wrappedHandler = this.withPerformanceMonitoring(wrappedHandler, config);
     wrappedHandler = this.withErrorHandling(wrappedHandler, config);
@@ -381,7 +399,9 @@ export const withPerformanceMonitoring = <
   config?: MiddlewareConfig
 ) => MiddlewareUtils.withPerformanceMonitoring(handler, config);
 
-export const withCORS = <T extends (...args: unknown[]) => Promise<NextResponse>>(
+export const withCORS = <
+  T extends (...args: unknown[]) => Promise<NextResponse>
+>(
   handler: T,
   config?: MiddlewareConfig
 ) => MiddlewareUtils.withCORS(handler, config);
@@ -391,7 +411,11 @@ export const withRateLimiting = <
 >(
   handler: T,
   config?: MiddlewareConfig,
-  rateLimitConfig?: Record<string, unknown>
+  rateLimitConfig?: {
+    windowMs: number;
+    maxRequests: number;
+    keyGenerator?: (request: NextRequest) => string;
+  }
 ) => MiddlewareUtils.withRateLimiting(handler, config, rateLimitConfig);
 
 export const withRequestValidation = <
