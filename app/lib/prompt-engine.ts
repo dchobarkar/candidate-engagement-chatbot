@@ -101,7 +101,9 @@ export class PromptEngine {
 
       // Update conversation memory
       this.updateConversationMemory(
-        context.sessionMetadata.sessionId || "default",
+        typeof context.sessionMetadata.sessionId === "string"
+          ? context.sessionMetadata.sessionId
+          : "default",
         memory
       );
 
@@ -173,7 +175,7 @@ Respond in a friendly, professional manner that encourages engagement. Ask 1-2 r
         "conversationContext",
         "userMessage",
       ],
-      stage: "greeting",
+      stage: { name: "greeting" },
       priority: 1,
       version: "1.0",
     });
@@ -210,7 +212,7 @@ Respond by building on what they've shared and asking targeted questions about t
         "stage",
         "userMessage",
       ],
-      stage: "greeting",
+      stage: { name: "greeting" },
       priority: 2,
       version: "1.0",
     });
@@ -253,7 +255,7 @@ Ask specific, targeted questions about their experience. If they mention experie
         "previousResponses",
         "userMessage",
       ],
-      stage: "qualification",
+      stage: { name: "qualification" },
       priority: 1,
       version: "1.0",
     });
@@ -291,7 +293,7 @@ Ask specific questions about their technical skills. Request examples of project
         "extractedSkills",
         "userMessage",
       ],
-      stage: "qualification",
+      stage: { name: "qualification" },
       priority: 2,
       version: "1.0",
     });
@@ -331,7 +333,7 @@ Provide a balanced assessment. If they're a good fit, explain why and discuss ne
         "stage",
         "userMessage",
       ],
-      stage: "assessment",
+      stage: { name: "assessment" },
       priority: 1,
       version: "1.0",
     });
@@ -371,7 +373,7 @@ Provide a clear summary and next steps. If they're moving forward, explain what 
         "stage",
         "userMessage",
       ],
-      stage: "closing",
+      stage: { name: "closing" },
       priority: 1,
       version: "1.0",
     });
@@ -395,7 +397,7 @@ Candidate's message: "{userMessage}"
 
 Extract and categorize the technical skills mentioned. Be specific about skill levels and relevance.`,
       variables: ["context", "userMessage"],
-      stage: "qualification",
+      stage: { name: "qualification" },
       priority: 3,
       version: "1.0",
     });
@@ -418,7 +420,7 @@ Candidate's message: "{userMessage}"
 
 Extract all relevant experience information. Be specific about duration, roles, and achievements.`,
       variables: ["context", "userMessage"],
-      stage: "qualification",
+      stage: { name: "qualification" },
       priority: 3,
       version: "1.0",
     });
@@ -482,7 +484,7 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
    */
   private initializeOptimizationRules(): void {
     // Clarity optimization
-    this.optimizationRules.set("clarity", (prompt: string) => {
+    this.optimizationRules.set("clarity", ((prompt: string) => {
       let score = 0.5;
 
       // Check for clear structure
@@ -497,10 +499,10 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
         score += 0.1;
 
       return Math.min(1.0, score);
-    });
+    }) as (...args: unknown[]) => unknown);
 
     // Specificity optimization
-    this.optimizationRules.set("specificity", (prompt: string) => {
+    this.optimizationRules.set("specificity", ((prompt: string) => {
       let score = 0.5;
 
       // Check for specific examples
@@ -515,44 +517,68 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
         score += 0.1;
 
       return Math.min(1.0, score);
-    });
+    }) as (...args: unknown[]) => unknown);
 
     // Relevance optimization
-    this.optimizationRules.set(
-      "relevance",
-      (prompt: string, context: PromptContext) => {
-        let score = 0.5;
+    this.optimizationRules.set("relevance", ((
+      prompt: string,
+      context: PromptContext
+    ) => {
+      let score = 0.5;
 
-        // Check for job-specific content
-        if (prompt.includes(context.jobDescription.title)) score += 0.2;
-        if (prompt.includes(context.jobDescription.company)) score += 0.1;
+      // Check for job-specific content
+      if (prompt.includes(context.jobDescription.title)) score += 0.2;
+      if (prompt.includes(context.jobDescription.company)) score += 0.1;
 
-        // Check for stage-appropriate content
-        if (prompt.includes(context.conversationStage)) score += 0.1;
+      // Check for stage-appropriate content
+      const stageStr =
+        typeof context.conversationStage === "string"
+          ? context.conversationStage
+          : JSON.stringify(context.conversationStage);
+      if (prompt.includes(stageStr)) score += 0.1;
 
-        // Check for context variables
-        const variableCount = (prompt.match(/\{[^}]+\}/g) || []).length;
-        score += Math.min(0.1, variableCount * 0.02);
+      // Check for context variables
+      const variableCount = (prompt.match(/\{[^}]+\}/g) || []).length;
+      score += Math.min(0.1, variableCount * 0.02);
 
-        return Math.min(1.0, score);
-      }
-    );
+      return Math.min(1.0, score);
+    }) as (...args: unknown[]) => unknown);
   }
 
   /**
    * Select appropriate prompt template based on context
    */
   private selectPromptTemplate(context: PromptContext): PromptTemplate {
-    const stage = context.conversationStage;
+    const stageObj = context.conversationStage;
+    const stageName =
+      typeof stageObj === "object" &&
+      stageObj !== null &&
+      "name" in stageObj &&
+      typeof stageObj.name === "string"
+        ? stageObj.name
+        : typeof stageObj === "string"
+        ? stageObj
+        : "greeting";
     const userIntent = context.userIntent.toLowerCase();
 
     // Filter templates by stage
     const stageTemplates = Array.from(this.promptTemplates.values())
-      .filter((template) => template.stage === stage)
+      .filter((template) => {
+        const templateStageName =
+          typeof template.stage === "object" &&
+          template.stage !== null &&
+          "name" in template.stage &&
+          typeof template.stage.name === "string"
+            ? template.stage.name
+            : typeof template.stage === "string"
+            ? template.stage
+            : "";
+        return templateStageName === stageName;
+      })
       .sort((a, b) => b.priority - a.priority);
 
     // Select template based on context and intent
-    if (stage === "greeting") {
+    if (stageName === "greeting") {
       if (context.conversationHistory.length > 2) {
         return (
           stageTemplates.find((t) => t.name === "greeting_followup") ||
@@ -564,7 +590,7 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
           stageTemplates[0]
         );
       }
-    } else if (stage === "qualification") {
+    } else if (stageName === "qualification") {
       if (
         userIntent.includes("experience") ||
         userIntent.includes("background")
@@ -582,12 +608,12 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
           stageTemplates[0]
         );
       }
-    } else if (stage === "assessment") {
+    } else if (stageName === "assessment") {
       return (
         stageTemplates.find((t) => t.name === "assessment_fit") ||
         stageTemplates[0]
       );
-    } else if (stage === "closing") {
+    } else if (stageName === "closing") {
       return (
         stageTemplates.find((t) => t.name === "closing_next_steps") ||
         stageTemplates[0]
@@ -630,7 +656,11 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
       extractedInfo: this.formatExtractedInfo(context.extractedInfo),
       previousResponses: context.previousResponses.slice(-3).join(" | "),
       skillLevels: this.formatSkillLevels(context.jobDescription.skills),
-      extractedSkills: this.formatExtractedSkills(context.extractedInfo.skills),
+      extractedSkills: this.formatExtractedSkills(
+        Array.isArray(context.extractedInfo.skills)
+          ? context.extractedInfo.skills
+          : undefined
+      ),
       fitAnalysis: this.analyzeCandidateFit(context),
       strengths: memory.positiveSignals.join(", "),
       concerns: memory.concerns.join(", "),
@@ -644,7 +674,7 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
       const placeholder = `{${key}}`;
       prompt = prompt.replace(
         new RegExp(placeholder, "g"),
-        value || "Not specified"
+        value ? String(value) : "Not specified"
       );
     }
 
@@ -801,7 +831,11 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
 
     // Boost confidence for context-specific content
     if (prompt.includes(context.jobDescription.title)) confidence += 0.1;
-    if (prompt.includes(context.conversationStage)) confidence += 0.05;
+    const stageStr =
+      typeof context.conversationStage === "string"
+        ? context.conversationStage
+        : JSON.stringify(context.conversationStage);
+    if (prompt.includes(stageStr)) confidence += 0.05;
 
     // Reduce confidence for generic prompts
     if (
@@ -822,11 +856,22 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
   ): PromptOptimization {
     const tokenCount = prompt.split(/\s+/).length;
 
-    const clarity = this.optimizationRules.get("clarity")?.(prompt) || 0.5;
-    const specificity =
-      this.optimizationRules.get("specificity")?.(prompt) || 0.5;
-    const relevance =
-      this.optimizationRules.get("relevance")?.(prompt, context) || 0.5;
+    const clarity = (
+      typeof this.optimizationRules.get("clarity")?.(prompt) === "number"
+        ? this.optimizationRules.get("clarity")?.(prompt)
+        : 0.5
+    ) as number;
+    const specificity = (
+      typeof this.optimizationRules.get("specificity")?.(prompt) === "number"
+        ? this.optimizationRules.get("specificity")?.(prompt)
+        : 0.5
+    ) as number;
+    const relevance = (
+      typeof this.optimizationRules.get("relevance")?.(prompt, context) ===
+      "number"
+        ? this.optimizationRules.get("relevance")?.(prompt, context)
+        : 0.5
+    ) as number;
 
     const overallScore = (clarity + specificity + relevance) / 3;
 
@@ -989,7 +1034,11 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
   }
 
   private provideExtractionContext(context: PromptContext): string {
-    return `Job: ${context.jobDescription.title} at ${context.jobDescription.company}, Stage: ${context.conversationStage}, Previous messages: ${context.conversationHistory.length}`;
+    const stageStr =
+      typeof context.conversationStage === "string"
+        ? context.conversationStage
+        : JSON.stringify(context.conversationStage);
+    return `Job: ${context.jobDescription.title} at ${context.jobDescription.company}, Stage: ${stageStr}, Previous messages: ${context.conversationHistory.length}`;
   }
 
   /**
