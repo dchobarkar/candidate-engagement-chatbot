@@ -215,6 +215,7 @@ export type ErrorCode =
   | "PROFILE_VALIDATION_ERROR"
   | "PROFILE_ANALYSIS_ERROR"
   | "MESSAGE_PROCESSING_ERROR"
+  | "MESSAGE_SEND_ERROR"
 
   // Business Logic Errors
   | "LOW_CONFIDENCE"
