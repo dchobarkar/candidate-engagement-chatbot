@@ -346,11 +346,19 @@ export class ValidationUtils {
       errors.push("Either name or email is required");
     }
 
-    if (profileObj.email && typeof profileObj.email === "string" && !this.isValidEmail(profileObj.email)) {
+    if (
+      profileObj.email &&
+      typeof profileObj.email === "string" &&
+      !this.isValidEmail(profileObj.email)
+    ) {
       errors.push("Invalid email format");
     }
 
-    if (profileObj.phone && typeof profileObj.phone === "string" && !this.isValidPhone(profileObj.phone)) {
+    if (
+      profileObj.phone &&
+      typeof profileObj.phone === "string" &&
+      !this.isValidPhone(profileObj.phone)
+    ) {
       errors.push("Invalid phone format");
     }
 
@@ -442,7 +450,11 @@ export class ValidationUtils {
   // ERROR CREATION HELPERS
   // ========================================================================
 
-  static createValidationError(field: string, message: string, value?: any) {
+  static createValidationError(
+    field: string,
+    message: string,
+    value?: unknown
+  ) {
     return createError("VALIDATION_ERROR", message, { field, value }, "medium");
   }
 
