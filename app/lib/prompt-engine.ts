@@ -975,7 +975,7 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
     if (profile.skills && profile.skills.length > 0) {
       const matchingSkills = profile.skills.filter((skill) =>
         requirements.skills.some((reqSkill) =>
-          reqSkill.toLowerCase().includes(skill.toLowerCase())
+          reqSkill.toLowerCase().includes(skill.name.toLowerCase())
         )
       );
       analysis += `Skills match: ${matchingSkills.length}/${requirements.skills.length}. `;
@@ -994,18 +994,20 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
     const requirements = context.jobDescription;
 
     if (profile.experience && requirements.experience) {
-      if (profile.experience >= requirements.experience) fitScore += 40;
-      else
-        fitScore += Math.max(
-          0,
-          40 - (requirements.experience - profile.experience) * 10
-        );
+      const reqYears = requirements.experience.min || 0;
+      const profileYears =
+        profile.experience.years || profile.experience.length || 0;
+      if (profileYears >= reqYears) {
+        fitScore += 40;
+      } else {
+        fitScore += Math.max(0, 40 - (reqYears - profileYears) * 10);
+      }
     }
 
     if (profile.skills && profile.skills.length > 0) {
       const matchingSkills = profile.skills.filter((skill) =>
         requirements.skills.some((reqSkill) =>
-          reqSkill.toLowerCase().includes(skill.toLowerCase())
+          reqSkill.toLowerCase().includes(skill.name.toLowerCase())
         )
       );
       fitScore += (matchingSkills.length / requirements.skills.length) * 40;
@@ -1017,9 +1019,18 @@ Be thorough and specific in your extraction. Ask clarifying questions when infor
   }
 
   private determineNextSteps(context: PromptContext): string {
-    const stage = context.conversationStage;
+    const stageObj = context.conversationStage;
+    const stageName =
+      typeof stageObj === "object" &&
+      stageObj !== null &&
+      "name" in stageObj &&
+      typeof stageObj.name === "string"
+        ? stageObj.name
+        : typeof stageObj === "string"
+        ? stageObj
+        : "greeting";
 
-    switch (stage) {
+    switch (stageName) {
       case "greeting":
         return "Continue gathering basic information and assess initial interest";
       case "qualification":
