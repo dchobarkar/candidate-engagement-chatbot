@@ -49,6 +49,7 @@ export class SessionManager {
       messages: [],
       candidateProfile: {
         id: uuidv4(),
+        salaryExpectation: "",
         name: undefined,
         email: undefined,
         phone: undefined,
@@ -86,7 +87,7 @@ export class SessionManager {
       createdAt: now,
       updatedAt: now,
       expiresAt,
-      lastActivity: undefined,
+      lastActivity: now,
     };
 
     this.sessions.set(sessionId, session);
@@ -112,6 +113,7 @@ export class SessionManager {
       messages: sessionData.messages || [],
       candidateProfile: sessionData.candidateProfile || {
         id: uuidv4(),
+        salaryExpectation: "",
         name: undefined,
         email: undefined,
         phone: undefined,
@@ -148,7 +150,7 @@ export class SessionManager {
       createdAt: sessionData.createdAt || now,
       updatedAt: now,
       expiresAt: sessionData.expiresAt || expiresAt,
-      lastActivity: undefined,
+      lastActivity: sessionData.lastActivity || now,
     };
 
     this.sessions.set(sessionId, session);
