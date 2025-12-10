@@ -67,7 +67,7 @@ const initialCandidateProfile: CandidateProfile = {
   },
   confidence: 0,
   lastUpdated: new Date(),
-  metadata: undefined,
+  metadata: {},
   salaryExpectation: "",
 };
 
@@ -151,7 +151,7 @@ export const useChatStore = create<ChatStore>()(
         } else {
           set({
             error: {
-              code: "INVALID_SESSION",
+              code: "SESSION_INVALID",
               message: "Session is invalid or expired",
               timestamp: new Date(),
               severity: "low",
@@ -221,10 +221,11 @@ export const useChatStore = create<ChatStore>()(
           }
         } catch (error) {
           setError({
-            code: "SESSION_INIT_ERROR",
+            code: "SESSION_CREATION_ERROR",
             message: "Failed to initialize session",
             details: error,
             timestamp: new Date(),
+            severity: "medium",
           });
         } finally {
           setLoading(false);
@@ -237,9 +238,10 @@ export const useChatStore = create<ChatStore>()(
 
         if (!currentSession) {
           setError({
-            code: "NO_SESSION",
+            code: "NO_ACTIVE_SESSION",
             message: "No active session found",
             timestamp: new Date(),
+            severity: "medium",
           });
           return;
         }
@@ -320,6 +322,7 @@ export const useChatStore = create<ChatStore>()(
             message: "Failed to send message",
             details: error,
             timestamp: new Date(),
+            severity: "medium",
           });
         } finally {
           setLoading(false);
@@ -384,10 +387,11 @@ export const useChatStore = create<ChatStore>()(
         } catch (error) {
           set({
             error: {
-              code: "IMPORT_ERROR",
+              code: "INTERNAL_SERVER_ERROR",
               message: "Failed to import conversation data",
               details: error,
               timestamp: new Date(),
+              severity: "medium",
             },
           });
         }
