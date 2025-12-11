@@ -364,7 +364,15 @@ export class ValidationUtils {
 
     // Experience validation
     if (profileObj.experience) {
-      const expValidation = this.validateExperience(profileObj.experience);
+      const exp = profileObj.experience as {
+        years?: number;
+        months?: number;
+        length?: number;
+      };
+      const expValidation = this.validateExperience({
+        years: exp.years || exp.length || 0,
+        months: exp.months || 0,
+      });
       errors.push(...expValidation.errors);
     }
 
@@ -384,7 +392,15 @@ export class ValidationUtils {
 
     // Salary validation
     if (profileObj.salary) {
-      const salaryValidation = this.validateSalary(profileObj.salary);
+      const sal = profileObj.salary as {
+        expected?: number;
+        currency?: string;
+        negotiable?: boolean;
+      };
+      const salaryValidation = this.validateSalary({
+        expected: sal.expected || 0,
+        currency: sal.currency || "USD",
+      });
       errors.push(...salaryValidation.errors);
       warnings.push(...salaryValidation.warnings);
     }
@@ -413,12 +429,24 @@ export class ValidationUtils {
       if (result.success) {
         return { success: true, data: result.data };
       } else {
-        return { success: false, errors: result.error.issues };
+        return {
+          success: false,
+          errors: result.error.issues.map((issue) => ({
+            message: issue.message,
+            path: issue.path.map(String),
+          })),
+        };
       }
     } catch (error) {
       return {
         success: false,
-        errors: [{ message: "Schema validation failed", error }],
+        errors: [
+          {
+            message: `Schema validation failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          },
+        ],
       };
     }
   }
@@ -436,12 +464,24 @@ export class ValidationUtils {
       if (result.success) {
         return { success: true, data: result.data };
       } else {
-        return { success: false, errors: result.error.issues };
+        return {
+          success: false,
+          errors: result.error.issues.map((issue) => ({
+            message: issue.message,
+            path: issue.path.map(String),
+          })),
+        };
       }
     } catch (error) {
       return {
         success: false,
-        errors: [{ message: "Schema validation failed", error }],
+        errors: [
+          {
+            message: `Schema validation failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          },
+        ],
       };
     }
   }
@@ -464,7 +504,12 @@ export class ValidationUtils {
     message: string,
     value?: unknown
   ) {
-    return createError(code as ErrorCode, message, { field, value }, "medium");
+    return createError(
+      code as import("./types").ErrorCode,
+      message,
+      { field, value },
+      "medium"
+    );
   }
 
   static createMissingFieldError(field: string) {
