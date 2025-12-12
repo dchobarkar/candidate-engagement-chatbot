@@ -368,6 +368,7 @@ export class SessionManager {
    * Load sessions from storage
    */
   private loadSessionsFromStorage(): void {
+    if (typeof window === "undefined") return; // Skip on server-side
     try {
       const sessions = getSessionsFromStorage();
       this.sessions.clear();
@@ -386,6 +387,7 @@ export class SessionManager {
    * Save all sessions to storage
    */
   private saveAllSessionsToStorage(): void {
+    if (typeof window === "undefined") return; // Skip on server-side
     try {
       const sessions = Array.from(this.sessions.values());
       const validSessions = cleanupExpiredSessions(sessions);
@@ -400,7 +402,9 @@ export class SessionManager {
    */
   clearAllSessions(): void {
     this.sessions.clear();
-    localStorage.removeItem("chat-sessions");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("chat-sessions");
+    }
   }
 
   // ========================================================================
