@@ -84,6 +84,7 @@ export const getSessionAge = (session: ConversationSession): string => {
 
 // SESSION PERSISTENCE
 export const saveSessionToStorage = (session: ConversationSession): void => {
+  if (typeof window === "undefined") return; // Skip on server-side
   try {
     const sessions = getSessionsFromStorage();
     const existingIndex = sessions.findIndex((s) => s.id === session.id);
@@ -103,6 +104,7 @@ export const saveSessionToStorage = (session: ConversationSession): void => {
 };
 
 export const getSessionsFromStorage = (): ConversationSession[] => {
+  if (typeof window === "undefined") return []; // Skip on server-side
   try {
     const sessionsData = localStorage.getItem("chat-sessions");
     if (!sessionsData) return [];
@@ -116,6 +118,7 @@ export const getSessionsFromStorage = (): ConversationSession[] => {
 };
 
 export const clearSessionsFromStorage = (): void => {
+  if (typeof window === "undefined") return; // Skip on server-side
   try {
     localStorage.removeItem("chat-sessions");
   } catch (error) {
