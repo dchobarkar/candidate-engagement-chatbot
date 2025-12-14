@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { candidateProfile, jobContext, metadata } = validationResult.data;
+    const { candidateProfile, metadata } = validationResult.data;
 
     // Create new session
     // Use undefined if jobContext is incomplete (sessionManager will use default)
