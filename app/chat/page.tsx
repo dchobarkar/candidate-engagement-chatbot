@@ -4,11 +4,9 @@ import React, { useEffect, Suspense, lazy } from "react";
 
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useChatStore } from "../lib/store";
-import { useSession, useJob } from "../lib/hooks";
+import { useSession } from "../lib/hooks";
 
-const ChatInterface = lazy(() =>
-  import("../components/ChatInterface")
-);
+const ChatInterface = lazy(() => import("../components/ChatInterface"));
 const JobInfo = lazy(() =>
   import("../components/JobInfo").then((module) => ({
     default: module.JobInfo,
