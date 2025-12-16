@@ -1,5 +1,3 @@
-import { JSX, ReactNode } from "react";
-
 import { jobDescription } from "./job-description";
 import {
   CandidateProfile,
