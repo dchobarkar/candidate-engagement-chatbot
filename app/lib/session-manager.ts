@@ -19,7 +19,6 @@ import {
   exportSession,
   importSession,
 } from "./session-utils";
-import { JSX, ReactNode } from "react";
 
 // SESSION MANAGER CLASS
 export class SessionManager {
