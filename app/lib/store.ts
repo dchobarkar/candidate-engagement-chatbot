@@ -1,4 +1,3 @@
-import { JSX, ReactNode } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
@@ -69,14 +68,6 @@ const initialCandidateProfile: CandidateProfile = {
   lastUpdated: new Date(),
   metadata: {},
   salaryExpectation: "",
-};
-
-const initialError: ApiError = {
-  code: "INTERNAL_SERVER_ERROR",
-  message: "",
-  details: undefined,
-  timestamp: new Date(),
-  severity: "low",
 };
 
 // STORE IMPLEMENTATION
