@@ -297,23 +297,19 @@ export async function POST(request: NextRequest) {
       // ========================================================================
       // SUCCESS RESPONSE
       // ========================================================================
-      const response: ApiResponse = {
-        success: true,
-        data: {
-          message: assistantMessage,
-          sessionId: sessionId,
-          confidence: conversationResult.confidence,
-          extractedInfo: conversationResult.extractedData,
-          processingTime: Date.now() - startTime,
-          rateLimit: {
-            remaining: rateLimitResult.remaining,
-            resetTime: rateLimitResult.resetTime,
-          },
+      const responseData = {
+        message: assistantMessage,
+        sessionId: sessionId,
+        confidence: conversationResult.confidence,
+        extractedInfo: conversationResult.extractedData,
+        processingTime: Date.now() - startTime,
+        rateLimit: {
+          remaining: rateLimitResult.remaining,
+          resetTime: rateLimitResult.resetTime,
         },
-        message: "Message processed successfully",
       };
 
-      return createSuccessResponse(response);
+      return createSuccessResponse(responseData);
     } catch (conversationError) {
       console.error("Conversation processing error:", conversationError);
 
