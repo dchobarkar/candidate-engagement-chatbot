@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   title: "Candidate Engagement Chatbot",
   description:
     "A specialized chatbot that engages job applicants with contextually relevant information while qualifying their fit",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
 };
 
 export default function RootLayout({
