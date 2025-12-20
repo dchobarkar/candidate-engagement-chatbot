@@ -122,6 +122,7 @@ async function validateSession(
           code: "SESSION_NOT_FOUND",
           message: "Session not found",
           timestamp: new Date(),
+          severity: "low",
         },
       };
     }
@@ -133,6 +134,7 @@ async function validateSession(
           code: "SESSION_INVALID",
           message: "Session is invalid or expired",
           timestamp: new Date(),
+          severity: "low",
         },
       };
     }
@@ -146,6 +148,7 @@ async function validateSession(
         message: "Failed to validate session",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
     };
   }
@@ -162,8 +165,7 @@ export async function POST(request: NextRequest) {
     // ========================================================================
     // RATE LIMITING
     // ========================================================================
-    const clientIP =
-      request.ip || request.headers.get("x-forwarded-for") || "unknown";
+    const clientIP = request.headers.get("x-forwarded-for") || "unknown";
     const rateLimitResult = checkRateLimit(clientIP);
 
     if (!rateLimitResult.allowed) {
@@ -176,6 +178,7 @@ export async function POST(request: NextRequest) {
             resetTime: rateLimitResult.resetTime,
           },
           timestamp: new Date(),
+          severity: "low",
         },
         429
       );
@@ -194,6 +197,7 @@ export async function POST(request: NextRequest) {
           message: "Invalid JSON in request body",
           details: error,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -206,8 +210,9 @@ export async function POST(request: NextRequest) {
         {
           code: "VALIDATION_ERROR",
           message: "Invalid request data",
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
           timestamp: new Date(),
+          severity: "low",
         },
         400
       );
@@ -262,6 +267,8 @@ export async function POST(request: NextRequest) {
           extractedInfo: conversationResult.extractedInfo,
           processingTime: Date.now() - startTime,
         },
+        type: "",
+        status: undefined,
       };
 
       // Update session with new message
@@ -299,6 +306,7 @@ export async function POST(request: NextRequest) {
           message: "Failed to process conversation",
           details: conversationError,
           timestamp: new Date(),
+          severity: "low",
         },
         500
       );
@@ -312,6 +320,7 @@ export async function POST(request: NextRequest) {
         message: "Internal server error",
         details: error,
         timestamp: new Date(),
+        severity: "low",
       },
       500
     );
