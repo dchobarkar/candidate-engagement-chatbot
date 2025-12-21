@@ -105,24 +105,34 @@ export const useChatStore = create<ChatStore>()(
 
       // Profile Management
       updateProfile: (profile: Partial<CandidateProfile>) => {
-        set((state) => ({
-          candidateProfile: {
-            ...state.candidateProfile,
-            ...profile,
-            lastUpdated: new Date(),
-          },
-        }));
+        set((state) => {
+          // If profile has an id, treat it as a full profile replacement
+          const isFullProfile = (profile as CandidateProfile).id !== undefined;
+          
+          return {
+            candidateProfile: isFullProfile
+              ? (profile as CandidateProfile)
+              : {
+                  ...state.candidateProfile,
+                  ...profile,
+                  lastUpdated: new Date(),
+                },
+          };
+        });
 
         // Update session with new profile
         const currentSession = get().currentSession;
         if (currentSession) {
+          const isFullProfile = (profile as CandidateProfile).id !== undefined;
           const updatedSession = {
             ...currentSession,
-            candidateProfile: {
-              ...currentSession.candidateProfile,
-              ...profile,
-              lastUpdated: new Date(),
-            },
+            candidateProfile: isFullProfile
+              ? (profile as CandidateProfile)
+              : {
+                  ...currentSession.candidateProfile,
+                  ...profile,
+                  lastUpdated: new Date(),
+                },
             updatedAt: new Date(),
           };
           saveSessionToStorage(updatedSession);
