@@ -112,6 +112,7 @@ export const ERROR_STATUS_CODES: Record<ErrorCode, number> = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   INVALID_API_KEY: 401,
+  API_KEY_NOT_CONFIGURED: 503,
   INSUFFICIENT_PERMISSIONS: 403,
 
   // Resource Not Found
@@ -185,6 +186,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   UNAUTHORIZED: "Authentication required",
   FORBIDDEN: "Access forbidden",
   INVALID_API_KEY: "Invalid API key",
+  API_KEY_NOT_CONFIGURED: "AI service is not configured. API keys are not loaded in this environment.",
   INSUFFICIENT_PERMISSIONS: "Insufficient permissions",
 
   // Resource Not Found
