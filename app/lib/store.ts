@@ -16,6 +16,7 @@ import {
   CandidateProfile,
   ConversationSession,
   ApiError,
+  ErrorCode,
   MessageRole,
   ChatState,
   ChatActions,
@@ -279,17 +280,40 @@ export const useChatStore = create<ChatStore>()(
             }),
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          let responseData;
+          try {
+            responseData = await response.json();
+            console.log("API Response:", responseData);
+          } catch (parseError) {
+            console.error("Failed to parse response:", parseError);
+            throw new Error(
+              `Failed to parse server response. Status: ${response.status}`
+            );
           }
 
-          const responseData = await response.json();
-
           // Check if response is successful
-          if (!responseData.success || !responseData.data) {
-            throw new Error(
-              responseData.error?.message || "Invalid response from server"
-            );
+          if (!response.ok || !responseData.success || !responseData.data) {
+            const errorMsg =
+              responseData.error?.message ||
+              `HTTP error! status: ${response.status}` ||
+              "Invalid response from server";
+            const errorCode = responseData.error?.code;
+            console.error("API Error:", {
+              status: response.status,
+              error: responseData.error,
+              responseData,
+            });
+
+            // Create error object that preserves the error code
+            const apiError: ApiError = {
+              code: (errorCode as ErrorCode) || "MESSAGE_SEND_ERROR",
+              message: errorMsg,
+              timestamp: new Date(),
+              severity: responseData.error?.severity || "medium",
+              details: responseData.error?.details,
+            };
+
+            throw apiError;
           }
 
           const data = responseData.data;
@@ -327,13 +351,22 @@ export const useChatStore = create<ChatStore>()(
             );
           }
         } catch (error) {
-          setError({
-            code: "MESSAGE_SEND_ERROR",
-            message: "Failed to send message",
-            details: error,
-            timestamp: new Date(),
-            severity: "medium",
-          });
+          console.error("Error sending message:", error);
+
+          // Preserve error code if it's an ApiError, otherwise use default
+          if (error && typeof error === "object" && "code" in error) {
+            setError(error as ApiError);
+          } else {
+            const errorMessage =
+              error instanceof Error ? error.message : "Failed to send message";
+            setError({
+              code: "MESSAGE_SEND_ERROR",
+              message: errorMessage,
+              details: error,
+              timestamp: new Date(),
+              severity: "medium",
+            });
+          }
         } finally {
           setLoading(false);
         }

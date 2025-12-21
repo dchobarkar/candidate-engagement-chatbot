@@ -236,9 +236,23 @@ export async function POST(request: NextRequest) {
     // CONVERSATION PROCESSING
     // ========================================================================
     try {
+      // Check if API key is configured
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey || apiKey.trim() === "") {
+        return createErrorResponse(
+          {
+            code: "API_KEY_NOT_CONFIGURED",
+            message: "AI service is not configured. API keys are not loaded in this environment.",
+            timestamp: new Date(),
+            severity: "medium",
+          },
+          503
+        );
+      }
+
       // Initialize LLM client
       const llmClient = new LLMClient({
-        apiKey: process.env.OPENAI_API_KEY || "",
+        apiKey: apiKey,
         model: "gpt-4",
         temperature: 0.7,
         maxTokens: 1000,

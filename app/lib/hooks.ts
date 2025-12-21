@@ -282,6 +282,11 @@ export const useCanRetry = () => {
   return lastMessage?.role === MessageRole.USER;
 };
 
+export const useIsApiKeyNotConfigured = () => {
+  const { error } = useChatStore();
+  return error?.code === "API_KEY_NOT_CONFIGURED";
+};
+
 export const useConversationIsEmpty = () => {
   const { messages } = useChatStore();
   return messages.length === 0;

@@ -181,6 +181,7 @@ export type ErrorCode =
   | "UNAUTHORIZED"
   | "FORBIDDEN"
   | "INVALID_API_KEY"
+  | "API_KEY_NOT_CONFIGURED"
   | "INSUFFICIENT_PERMISSIONS"
 
   // Resource Errors (404)
