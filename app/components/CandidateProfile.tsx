@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, memo } from "react";
+import Link from "next/link";
 import { format } from "date-fns";
 
 import { useCandidate } from "../lib/hooks";
@@ -31,8 +32,9 @@ export const CanProf = memo(
     );
 
     // Custom hooks
-    const { candidateProfile } = useCandidate();
+    const { candidateProfile, updateProfile } = useCandidate();
     const isLoading = useChatStore((state) => state.isLoading);
+    const currentSession = useChatStore((state) => state.currentSession);
 
     // Local error state (can be extended to use store error)
     const [error] = useState<string | null>(null);
@@ -56,12 +58,15 @@ export const CanProf = memo(
       []
     );
 
-    // Initialize edit form when profile changes
+    // Initialize edit form when profile changes or session loads
     useEffect(() => {
-      if (candidateProfile) {
+      // Prioritize store profile (for profile page), then session profile
+      if (candidateProfile && (candidateProfile.name || candidateProfile.email)) {
         setEditForm(candidateProfile);
+      } else if (currentSession?.candidateProfile) {
+        setEditForm(currentSession.candidateProfile);
       }
-    }, [candidateProfile]);
+    }, [candidateProfile, currentSession]);
 
     // Handle form field changes
     const handleFieldChange = (
@@ -120,9 +125,12 @@ export const CanProf = memo(
           return;
         }
 
+        // Update profile in store
+        updateProfile(editForm);
+
+        // Call optional callback
         if (onProfileUpdate) {
           onProfileUpdate(editForm);
-        } else {
         }
 
         setIsEditing(false);
@@ -134,7 +142,8 @@ export const CanProf = memo(
 
     // Cancel editing
     const handleCancel = () => {
-      setEditForm(candidateProfile || {});
+      const profile = currentSession?.candidateProfile || candidateProfile;
+      setEditForm(profile || {});
       setIsEditing(false);
     };
 
@@ -174,9 +183,22 @@ export const CanProf = memo(
       return "text-gray-600 bg-gray-100";
     };
 
+    // Use store profile first (for profile page), then session profile as fallback
+    // This ensures the profile page always shows the store profile
+    const displayProfile = candidateProfile || currentSession?.candidateProfile;
+
+    // Debug logging
+    useEffect(() => {
+      console.log("CandidateProfile - displayProfile:", displayProfile);
+      console.log("CandidateProfile - candidateProfile:", candidateProfile);
+      console.log("CandidateProfile - currentSession?.candidateProfile:", currentSession?.candidateProfile);
+      console.log("CandidateProfile - has name:", displayProfile?.name);
+      console.log("CandidateProfile - has email:", displayProfile?.email);
+    }, [displayProfile, candidateProfile, currentSession]);
+
     // Calculate overall profile completion
     const calculateCompletion = () => {
-      if (!candidateProfile) return 0;
+      if (!displayProfile) return 0;
 
       const fields = [
         "name",
@@ -187,7 +209,7 @@ export const CanProf = memo(
         "education",
       ];
       const completedFields = fields.filter((field) => {
-        const value = candidateProfile[field as keyof CandidateProfile];
+        const value = displayProfile[field as keyof CandidateProfile];
         return (
           value && (Array.isArray(value) ? value.length > 0 : Boolean(value))
         );
@@ -238,7 +260,7 @@ export const CanProf = memo(
       );
     }
 
-    if (!candidateProfile) {
+    if (!displayProfile || (!displayProfile.name && !displayProfile.email)) {
       return (
         <div
           className={`bg-gray-50 border border-gray-200 rounded-lg p-6 text-center ${className}`}
@@ -261,9 +283,15 @@ export const CanProf = memo(
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             No Profile Available
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
             Start a conversation to build your candidate profile
           </p>
+          <Link
+            href="/chat"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+          >
+            Go to Chat
+          </Link>
         </div>
       );
     }
@@ -278,12 +306,12 @@ export const CanProf = memo(
             <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-semibold text-base sm:text-lg">
-                  {candidateProfile.name?.charAt(0) || "C"}
+                  {displayProfile.name?.charAt(0) || "C"}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
-                  {candidateProfile.name || "Candidate Profile"}
+                  {displayProfile.name || "Candidate Profile"}
                 </h2>
                 <p className="text-xs sm:text-sm text-gray-600">
                   Profile completion: {calculateCompletion()}%
@@ -294,7 +322,7 @@ export const CanProf = memo(
             <div className="flex items-center space-x-2 flex-shrink-0">
               {onExport && (
                 <button
-                  onClick={() => onExport(candidateProfile)}
+                  onClick={() => onExport(displayProfile)}
                   className="px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   <span className="hidden sm:inline">Export</span>
@@ -471,7 +499,7 @@ export const CanProf = memo(
           {activeTab === "overview" && (
             <div className="animate-fade-in">
               <OverviewTab
-                profile={candidateProfile}
+                profile={displayProfile}
                 isEditing={isEditing}
                 editForm={editForm}
                 onFieldChange={handleFieldChange}
@@ -485,7 +513,7 @@ export const CanProf = memo(
           {activeTab === "skills" && (
             <div className="animate-fade-in">
               <SkillsTab
-                profile={candidateProfile}
+                profile={displayProfile}
                 isEditing={isEditing}
                 editForm={editForm}
                 onFieldChange={handleFieldChange}
@@ -501,7 +529,7 @@ export const CanProf = memo(
           {activeTab === "experience" && (
             <div className="animate-fade-in">
               <ExperienceTab
-                profile={candidateProfile}
+                profile={displayProfile}
                 isEditing={isEditing}
                 editForm={editForm}
                 onFieldChange={handleFieldChange}
@@ -514,7 +542,7 @@ export const CanProf = memo(
           {activeTab === "education" && (
             <div className="animate-fade-in">
               <EducationTab
-                profile={candidateProfile}
+                profile={displayProfile}
                 isEditing={isEditing}
                 editForm={editForm}
                 onFieldChange={handleFieldChange}

@@ -1,9 +1,11 @@
 "use client";
 
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import Link from "next/link";
 
 import { LoadingSpinner } from "../components/LoadingSpinner";
+import { useCandidate } from "../lib/hooks";
+import { getDefaultProfile } from "../data/profiles";
 
 const CandidateProfile = lazy(() =>
   import("../components/CandidateProfile").then((module) => ({
@@ -12,6 +14,29 @@ const CandidateProfile = lazy(() =>
 );
 
 const Page = () => {
+  const { candidateProfile, updateProfile } = useCandidate();
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize profile with static data when page loads
+  useEffect(() => {
+    // Always initialize with static data on profile page
+    // This ensures the profile page always has data to display
+    if (!isInitialized) {
+      const defaultProfile = getDefaultProfile();
+      console.log("Initializing profile with static data:", defaultProfile);
+      updateProfile(defaultProfile);
+      setIsInitialized(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+
+  // Debug: Log when profile changes
+  useEffect(() => {
+    console.log("Profile page - candidateProfile:", candidateProfile);
+    console.log("Profile page - has name:", candidateProfile?.name);
+    console.log("Profile page - has email:", candidateProfile?.email);
+  }, [candidateProfile]);
+
   // Loading fallback component
   const LoadingFallback = () => (
     <div className="flex items-center justify-center p-8">
