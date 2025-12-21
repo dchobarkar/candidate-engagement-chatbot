@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, Suspense, lazy } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useChatStore } from "../lib/store";
@@ -24,29 +24,34 @@ const ErrorDisplay = lazy(() =>
 // Inner component that uses useSearchParams
 const ChatPageContent = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const jobId = searchParams?.get("jobId");
-  const { currentSession, initializeSession } = useSession();
+  const { currentSession } = useSession();
   const { isLoading, error, setSession } = useChatStore();
+
+  // Redirect to home if no jobId is provided
+  useEffect(() => {
+    if (!jobId) {
+      router.replace("/");
+      return;
+    }
+  }, [jobId, router]);
 
   // Initialize session on component mount
   useEffect(() => {
-    if (!currentSession) {
-      // If jobId is provided, get the job and initialize session with it
-      if (jobId) {
-        const job = getJobById(jobId);
-        if (job) {
-          // Create session with specific job context
-          const newSession = sessionManager.createSession(undefined, job);
-          setSession(newSession);
-        } else {
-          // Job not found, initialize with default
-          initializeSession();
-        }
+    if (!currentSession && jobId) {
+      // Get the job and initialize session with it
+      const job = getJobById(jobId);
+      if (job) {
+        // Create session with specific job context
+        const newSession = sessionManager.createSession(undefined, job);
+        setSession(newSession);
       } else {
-        initializeSession();
+        // Job not found, redirect to home
+        router.replace("/");
       }
     }
-  }, [currentSession, initializeSession, jobId, setSession]);
+  }, [currentSession, jobId, setSession, router]);
 
   // Loading fallback component
   const LoadingFallback = () => (
