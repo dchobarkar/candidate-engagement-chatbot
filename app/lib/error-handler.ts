@@ -186,7 +186,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   UNAUTHORIZED: "Authentication required",
   FORBIDDEN: "Access forbidden",
   INVALID_API_KEY: "Invalid API key",
-  API_KEY_NOT_CONFIGURED: "AI service is not configured. API keys are not loaded in this environment.",
+  API_KEY_NOT_CONFIGURED:
+    "AI service is not configured. API keys are not loaded in this environment.",
   INSUFFICIENT_PERMISSIONS: "Insufficient permissions",
 
   // Resource Not Found
@@ -501,9 +502,7 @@ export class ErrorHandler {
   // ERROR RETRIEVAL AND ANALYTICS
   // ========================================================================
 
-  getErrorLog(
-    limit: number = 100
-  ): Array<{
+  getErrorLog(limit: number = 100): Array<{
     timestamp: Date;
     error: ApiError;
     requestId?: string;

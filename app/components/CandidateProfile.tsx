@@ -61,7 +61,10 @@ export const CanProf = memo(
     // Initialize edit form when profile changes or session loads
     useEffect(() => {
       // Prioritize store profile (for profile page), then session profile
-      if (candidateProfile && (candidateProfile.name || candidateProfile.email)) {
+      if (
+        candidateProfile &&
+        (candidateProfile.name || candidateProfile.email)
+      ) {
         setEditForm(candidateProfile);
       } else if (currentSession?.candidateProfile) {
         setEditForm(currentSession.candidateProfile);
@@ -191,7 +194,10 @@ export const CanProf = memo(
     useEffect(() => {
       console.log("CandidateProfile - displayProfile:", displayProfile);
       console.log("CandidateProfile - candidateProfile:", candidateProfile);
-      console.log("CandidateProfile - currentSession?.candidateProfile:", currentSession?.candidateProfile);
+      console.log(
+        "CandidateProfile - currentSession?.candidateProfile:",
+        currentSession?.candidateProfile
+      );
       console.log("CandidateProfile - has name:", displayProfile?.name);
       console.log("CandidateProfile - has email:", displayProfile?.email);
     }, [displayProfile, candidateProfile, currentSession]);

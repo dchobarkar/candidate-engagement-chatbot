@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useSession, useJob } from "../../lib/hooks";

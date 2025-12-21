@@ -9,7 +9,8 @@ export const defaultProfile: CandidateProfile = {
   experience: {
     years: 5,
     months: 3,
-    description: "Full-stack software development with expertise in modern web technologies",
+    description:
+      "Full-stack software development with expertise in modern web technologies",
     length: 5,
   },
   skills: [
@@ -73,4 +74,3 @@ export const getDefaultProfile = (): CandidateProfile => {
     lastUpdated: new Date(),
   };
 };
-

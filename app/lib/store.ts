@@ -108,7 +108,7 @@ export const useChatStore = create<ChatStore>()(
         set((state) => {
           // If profile has an id, treat it as a full profile replacement
           const isFullProfile = (profile as CandidateProfile).id !== undefined;
-          
+
           return {
             candidateProfile: isFullProfile
               ? (profile as CandidateProfile)

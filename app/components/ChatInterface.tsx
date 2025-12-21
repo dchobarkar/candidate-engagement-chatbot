@@ -27,9 +27,7 @@ interface ChatInterfaceProps {
   onProfileUpdate?: (profile: CandidateProfile) => void;
   onConversationComplete?: (summary: unknown) => void;
 }
-const ChatInterface = ({
-  className = "",
-}: ChatInterfaceProps) => {
+const ChatInterface = ({ className = "" }: ChatInterfaceProps) => {
   // State management
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -229,7 +227,8 @@ const ChatInterface = ({
                 AI Service Not Configured
               </p>
               <p className="text-xs text-amber-700 mt-0.5">
-                API keys are not loaded in this environment. The chat interface is available for demonstration purposes only.
+                API keys are not loaded in this environment. The chat interface
+                is available for demonstration purposes only.
               </p>
             </div>
           </div>

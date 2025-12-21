@@ -10,7 +10,6 @@ import {
   ChatMessage,
   MessageRole,
   ApiError,
-  ApiResponse,
   ConversationSession,
 } from "../../lib/types";
 
@@ -111,9 +110,11 @@ function createSuccessResponse(data: unknown): NextResponse {
 // SESSION VALIDATION MIDDLEWARE
 // ============================================================================
 
-async function validateSession(
-  sessionId: string
-): Promise<{ valid: boolean; session?: ConversationSession; error?: ApiError }> {
+async function validateSession(sessionId: string): Promise<{
+  valid: boolean;
+  session?: ConversationSession;
+  error?: ApiError;
+}> {
   try {
     const session = sessionManager.getSession(sessionId);
 
@@ -242,7 +243,8 @@ export async function POST(request: NextRequest) {
         return createErrorResponse(
           {
             code: "API_KEY_NOT_CONFIGURED",
-            message: "AI service is not configured. API keys are not loaded in this environment.",
+            message:
+              "AI service is not configured. API keys are not loaded in this environment.",
             timestamp: new Date(),
             severity: "medium",
           },
@@ -312,15 +314,15 @@ export async function POST(request: NextRequest) {
       // SUCCESS RESPONSE
       // ========================================================================
       const responseData = {
-          message: assistantMessage,
-          sessionId: sessionId,
-          confidence: conversationResult.confidence,
-          extractedInfo: conversationResult.extractedData,
-          processingTime: Date.now() - startTime,
-          rateLimit: {
-            remaining: rateLimitResult.remaining,
-            resetTime: rateLimitResult.resetTime,
-          },
+        message: assistantMessage,
+        sessionId: sessionId,
+        confidence: conversationResult.confidence,
+        extractedInfo: conversationResult.extractedData,
+        processingTime: Date.now() - startTime,
+        rateLimit: {
+          remaining: rateLimitResult.remaining,
+          resetTime: rateLimitResult.resetTime,
+        },
       };
 
       return createSuccessResponse(responseData);

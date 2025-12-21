@@ -80,7 +80,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-01-15"),
-    summary: "Join our engineering team to build cutting-edge solutions that impact millions of users worldwide.",
+    summary:
+      "Join our engineering team to build cutting-edge solutions that impact millions of users worldwide.",
   },
   {
     id: "fe-2024-002",
@@ -153,7 +154,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-01-20"),
-    summary: "Create beautiful and intuitive user experiences that delight our customers.",
+    summary:
+      "Create beautiful and intuitive user experiences that delight our customers.",
   },
   {
     id: "be-2024-003",
@@ -228,7 +230,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-01-25"),
-    summary: "Build robust and scalable backend systems that power our platform.",
+    summary:
+      "Build robust and scalable backend systems that power our platform.",
   },
   {
     id: "ds-2024-004",
@@ -298,7 +301,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-02-01"),
-    summary: "Transform data into actionable insights that drive business decisions.",
+    summary:
+      "Transform data into actionable insights that drive business decisions.",
   },
   {
     id: "devops-2024-005",
@@ -370,7 +374,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-02-05"),
-    summary: "Build and maintain robust infrastructure that enables seamless deployments and scaling.",
+    summary:
+      "Build and maintain robust infrastructure that enables seamless deployments and scaling.",
   },
   {
     id: "pm-2024-006",
@@ -439,7 +444,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-02-10"),
-    summary: "Shape the future of our products and deliver exceptional user experiences.",
+    summary:
+      "Shape the future of our products and deliver exceptional user experiences.",
   },
   {
     id: "ux-2024-007",
@@ -578,7 +584,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-02-15"),
-    summary: "Ensure our products meet the highest quality standards before reaching users.",
+    summary:
+      "Ensure our products meet the highest quality standards before reaching users.",
   },
   {
     id: "mobile-2024-009",
@@ -786,7 +793,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-02-22"),
-    summary: "Drive growth and brand awareness through innovative marketing strategies.",
+    summary:
+      "Drive growth and brand awareness through innovative marketing strategies.",
   },
   {
     id: "sales-eng-2024-012",
@@ -925,7 +933,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-02-28"),
-    summary: "Create clear and comprehensive documentation that helps users succeed.",
+    summary:
+      "Create clear and comprehensive documentation that helps users succeed.",
   },
   {
     id: "ba-2024-014",
@@ -1064,7 +1073,8 @@ export const jobs: JobDescription[] = [
     experienceDetails: {},
     education: {},
     postedDate: new Date("2024-03-05"),
-    summary: "Design and build scalable cloud architectures that power our platform.",
+    summary:
+      "Design and build scalable cloud architectures that power our platform.",
   },
 ];
 
@@ -1086,7 +1096,10 @@ export const filterJobs = (filters: {
   remote?: boolean;
 }): JobDescription[] => {
   return jobs.filter((job) => {
-    if (filters.location && !job.location.toLowerCase().includes(filters.location.toLowerCase())) {
+    if (
+      filters.location &&
+      !job.location.toLowerCase().includes(filters.location.toLowerCase())
+    ) {
       return false;
     }
     if (filters.type && job.type !== filters.type) {
@@ -1101,4 +1114,3 @@ export const filterJobs = (filters: {
     return true;
   });
 };
-

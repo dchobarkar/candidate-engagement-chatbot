@@ -1,7 +1,3 @@
-"use client";
-
-import React from "react";
-
 import { JobsList } from "./components/JobsList";
 import { getAllJobs } from "./data/jobs";
 
@@ -25,16 +21,20 @@ const Page = () => {
           relevant information while qualifying their fit for positions.
         </p>
         <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-          Browse our open positions and start a conversation with our AI assistant to learn more.
+          Browse our open positions and start a conversation with our AI
+          assistant to learn more.
         </p>
       </div>
 
       {/* Jobs List Section */}
       <div className="mb-12">
         <div className="mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Open Positions</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Open Positions
+          </h2>
           <p className="text-gray-600">
-            Explore our current job openings and start a conversation with our AI assistant
+            Explore our current job openings and start a conversation with our
+            AI assistant
           </p>
         </div>
         <JobsList jobs={jobs} />

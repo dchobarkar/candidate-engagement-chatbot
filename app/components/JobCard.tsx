@@ -1,6 +1,3 @@
-"use client";
-
-import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 
@@ -148,7 +145,9 @@ export function JobCard({ job, className = "" }: JobCardProps) {
 
         {/* Summary */}
         {job.summary && (
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">{job.summary}</p>
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+            {job.summary}
+          </p>
         )}
 
         {/* Posted Date */}
@@ -177,4 +176,3 @@ export function JobCard({ job, className = "" }: JobCardProps) {
     </div>
   );
 }
-
