@@ -283,18 +283,35 @@ export const useChatStore = create<ChatStore>()(
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          const data = await response.json();
+          const responseData = await response.json();
+
+          // Check if response is successful
+          if (!responseData.success || !responseData.data) {
+            throw new Error(
+              responseData.error?.message || "Invalid response from server"
+            );
+          }
+
+          const data = responseData.data;
+
+          // Validate that we have a message
+          if (!data.message || !data.message.content) {
+            throw new Error("Invalid response: missing message content");
+          }
 
           // Create assistant message
           const assistantMessage: ChatMessage = {
-            id: uuidv4(),
+            id: data.message.id || uuidv4(),
             content: data.message.content,
             role: MessageRole.ASSISTANT,
-            timestamp: new Date(),
+            timestamp: data.message.timestamp
+              ? new Date(data.message.timestamp)
+              : new Date(),
             sessionId: currentSession.id,
             metadata: {
               confidence: data.confidence,
               extractedInfo: data.extractedInfo,
+              processingTime: data.processingTime,
             },
             type: "",
             status: undefined,
@@ -304,8 +321,10 @@ export const useChatStore = create<ChatStore>()(
           addMessage(assistantMessage);
 
           // Update candidate profile if new information was extracted
-          if (data.candidateProfile) {
-            get().updateProfile(data.candidateProfile);
+          if (data.extractedInfo) {
+            get().updateProfile(
+              data.extractedInfo as Partial<CandidateProfile>
+            );
           }
         } catch (error) {
           setError({
