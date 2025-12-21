@@ -1,8 +1,15 @@
-import Link from "next/link";
+"use client";
+
+import React from "react";
+
+import { JobsList } from "./components/JobsList";
+import { getAllJobs } from "./data/jobs";
 
 const Page = () => {
+  const jobs = getAllJobs();
+
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section */}
       <div className="text-center mb-12">
         <div className="flex justify-center mb-6">
@@ -13,10 +20,24 @@ const Page = () => {
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           Candidate Engagement Platform
         </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
           AI-powered chatbot that engages job applicants with contextually
           relevant information while qualifying their fit for positions.
         </p>
+        <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+          Browse our open positions and start a conversation with our AI assistant to learn more.
+        </p>
+      </div>
+
+      {/* Jobs List Section */}
+      <div className="mb-12">
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Open Positions</h2>
+          <p className="text-gray-600">
+            Explore our current job openings and start a conversation with our AI assistant
+          </p>
+        </div>
+        <JobsList jobs={jobs} />
       </div>
 
       {/* Features Grid */}
@@ -92,29 +113,6 @@ const Page = () => {
             Comprehensive job requirements and benefits
           </p>
         </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="text-center">
-        <Link
-          href="/chat"
-          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Get Started
-          <svg
-            className="ml-2 w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 7l5 5m0 0l-5 5m5-5H6"
-            />
-          </svg>
-        </Link>
       </div>
     </main>
   );

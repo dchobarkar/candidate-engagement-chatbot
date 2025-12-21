@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useEffect, Suspense, lazy } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useChatStore } from "../lib/store";
 import { useSession } from "../lib/hooks";
+import { getJobById } from "../data/jobs";
+import { sessionManager } from "../lib/session-manager";
 
 const ChatInterface = lazy(() => import("../components/ChatInterface"));
 const JobInfo = lazy(() =>
@@ -19,15 +22,30 @@ const ErrorDisplay = lazy(() =>
 );
 
 const Page = () => {
+  const searchParams = useSearchParams();
+  const jobId = searchParams?.get("jobId");
   const { currentSession, initializeSession } = useSession();
-  const { isLoading, error } = useChatStore();
+  const { isLoading, error, setSession } = useChatStore();
 
   // Initialize session on component mount
   useEffect(() => {
     if (!currentSession) {
-      initializeSession();
+      // If jobId is provided, get the job and initialize session with it
+      if (jobId) {
+        const job = getJobById(jobId);
+        if (job) {
+          // Create session with specific job context
+          const newSession = sessionManager.createSession(undefined, job);
+          setSession(newSession);
+        } else {
+          // Job not found, initialize with default
+          initializeSession();
+        }
+      } else {
+        initializeSession();
+      }
     }
-  }, [currentSession, initializeSession]);
+  }, [currentSession, initializeSession, jobId, setSession]);
 
   // Loading fallback component
   const LoadingFallback = () => (
