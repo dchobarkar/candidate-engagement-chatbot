@@ -69,7 +69,7 @@ const Page = () => {
         <Suspense fallback={<LoadingFallback />}>
           <JobInfo
             className="w-full"
-            jobId={job.id}
+            job={job}
             showBenefits={true}
             showRequirements={true}
             showResponsibilities={true}

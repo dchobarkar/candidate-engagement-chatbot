@@ -312,15 +312,15 @@ export async function POST(request: NextRequest) {
       // SUCCESS RESPONSE
       // ========================================================================
       const responseData = {
-        message: assistantMessage,
-        sessionId: sessionId,
-        confidence: conversationResult.confidence,
-        extractedInfo: conversationResult.extractedData,
-        processingTime: Date.now() - startTime,
-        rateLimit: {
-          remaining: rateLimitResult.remaining,
-          resetTime: rateLimitResult.resetTime,
-        },
+          message: assistantMessage,
+          sessionId: sessionId,
+          confidence: conversationResult.confidence,
+          extractedInfo: conversationResult.extractedData,
+          processingTime: Date.now() - startTime,
+          rateLimit: {
+            remaining: rateLimitResult.remaining,
+            resetTime: rateLimitResult.resetTime,
+          },
       };
 
       return createSuccessResponse(responseData);

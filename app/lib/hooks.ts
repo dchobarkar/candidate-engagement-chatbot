@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { useChatStore } from "./store";
 import { CandidateProfile, MessageRole } from "./types";
 import { sessionManager } from "./session-manager";
+import { getJobById as getJobByIdFromData } from "../data/jobs";
 
 // CORE STORE HOOKS
 export const useChat = () => {
@@ -55,8 +56,12 @@ export const useJob = () => {
 
   const getJobById = useCallback(
     (jobId: string) => {
-      // For now, return the current job context if ID matches
-      // In a real app, this would query a jobs database
+      // First try to get from jobs data
+      const jobFromData = getJobByIdFromData(jobId);
+      if (jobFromData) {
+        return jobFromData;
+      }
+      // Fallback to job context if ID matches
       if (jobContext && jobContext.id === jobId) {
         return jobContext;
       }

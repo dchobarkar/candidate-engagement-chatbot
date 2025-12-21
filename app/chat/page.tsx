@@ -21,7 +21,8 @@ const ErrorDisplay = lazy(() =>
   }))
 );
 
-const Page = () => {
+// Inner component that uses useSearchParams
+const ChatPageContent = () => {
   const searchParams = useSearchParams();
   const jobId = searchParams?.get("jobId");
   const { currentSession, initializeSession } = useSession();
@@ -116,6 +117,7 @@ const Page = () => {
             <Suspense fallback={<LoadingFallback />}>
               <JobInfo
                 className="h-fit"
+                jobId={jobId || undefined}
                 showBenefits={true}
                 showRequirements={true}
                 showResponsibilities={true}
@@ -142,6 +144,20 @@ const Page = () => {
         </div>
       </div>
     </main>
+  );
+};
+
+const Page = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <LoadingSpinner size="xl" />
+        </div>
+      }
+    >
+      <ChatPageContent />
+    </Suspense>
   );
 };
 

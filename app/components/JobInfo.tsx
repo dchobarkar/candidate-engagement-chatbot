@@ -9,6 +9,7 @@ import { format } from "date-fns";
 interface JobInfoProps {
   className?: string;
   jobId?: string;
+  job?: JobDescription;
   showBenefits?: boolean;
   showRequirements?: boolean;
   showResponsibilities?: boolean;
@@ -19,6 +20,7 @@ interface JobInfoProps {
 export function JobInfo({
   className = "",
   jobId,
+  job,
   showBenefits = true,
   showRequirements = true,
   showResponsibilities = true,
@@ -34,11 +36,16 @@ export function JobInfo({
 
   // Initialize selected job
   useEffect(() => {
-    if (jobId) {
-      const job = getJobById(jobId);
-      if (job) setSelectedJob(job);
-    } else if (jobContext) setSelectedJob(jobContext);
-  }, [jobId, jobContext, getJobById]);
+    // Priority: job prop > jobId > jobContext
+    if (job) {
+      setSelectedJob(job);
+    } else if (jobId) {
+      const fetchedJob = getJobById(jobId);
+      if (fetchedJob) setSelectedJob(fetchedJob);
+    } else if (jobContext) {
+      setSelectedJob(jobContext);
+    }
+  }, [job, jobId, jobContext, getJobById]);
 
   // Handle tab change
   const handleTabChange = (tab: string) => {
