@@ -279,17 +279,29 @@ export const useChatStore = create<ChatStore>()(
             }),
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          let responseData;
+          try {
+            responseData = await response.json();
+            console.log("API Response:", responseData);
+          } catch (parseError) {
+            console.error("Failed to parse response:", parseError);
+            throw new Error(
+              `Failed to parse server response. Status: ${response.status}`
+            );
           }
 
-          const responseData = await response.json();
-
           // Check if response is successful
-          if (!responseData.success || !responseData.data) {
-            throw new Error(
-              responseData.error?.message || "Invalid response from server"
-            );
+          if (!response.ok || !responseData.success || !responseData.data) {
+            const errorMsg =
+              responseData.error?.message ||
+              `HTTP error! status: ${response.status}` ||
+              "Invalid response from server";
+            console.error("API Error:", {
+              status: response.status,
+              error: responseData.error,
+              responseData,
+            });
+            throw new Error(errorMsg);
           }
 
           const data = responseData.data;
@@ -327,9 +339,12 @@ export const useChatStore = create<ChatStore>()(
             );
           }
         } catch (error) {
+          console.error("Error sending message:", error);
+          const errorMessage =
+            error instanceof Error ? error.message : "Failed to send message";
           setError({
             code: "MESSAGE_SEND_ERROR",
-            message: "Failed to send message",
+            message: errorMessage,
             details: error,
             timestamp: new Date(),
             severity: "medium",

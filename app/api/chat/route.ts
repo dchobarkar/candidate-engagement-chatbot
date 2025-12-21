@@ -236,9 +236,24 @@ export async function POST(request: NextRequest) {
     // CONVERSATION PROCESSING
     // ========================================================================
     try {
+      // Check if API key is configured
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        console.error("OPENAI_API_KEY is not configured");
+        return createErrorResponse(
+          {
+            code: "CONFIGURATION_ERROR",
+            message: "OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.",
+            timestamp: new Date(),
+            severity: "high",
+          },
+          500
+        );
+      }
+
       // Initialize LLM client
       const llmClient = new LLMClient({
-        apiKey: process.env.OPENAI_API_KEY || "",
+        apiKey: apiKey,
         model: "gpt-4",
         temperature: 0.7,
         maxTokens: 1000,
