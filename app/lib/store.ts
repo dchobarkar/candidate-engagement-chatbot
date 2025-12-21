@@ -16,6 +16,7 @@ import {
   CandidateProfile,
   ConversationSession,
   ApiError,
+  ErrorCode,
   MessageRole,
   ChatState,
   ChatActions,
@@ -296,12 +297,23 @@ export const useChatStore = create<ChatStore>()(
               responseData.error?.message ||
               `HTTP error! status: ${response.status}` ||
               "Invalid response from server";
+            const errorCode = responseData.error?.code;
             console.error("API Error:", {
               status: response.status,
               error: responseData.error,
               responseData,
             });
-            throw new Error(errorMsg);
+
+            // Create error object that preserves the error code
+            const apiError: ApiError = {
+              code: (errorCode as ErrorCode) || "MESSAGE_SEND_ERROR",
+              message: errorMsg,
+              timestamp: new Date(),
+              severity: responseData.error?.severity || "medium",
+              details: responseData.error?.details,
+            };
+
+            throw apiError;
           }
 
           const data = responseData.data;
@@ -340,15 +352,21 @@ export const useChatStore = create<ChatStore>()(
           }
         } catch (error) {
           console.error("Error sending message:", error);
-          const errorMessage =
-            error instanceof Error ? error.message : "Failed to send message";
-          setError({
-            code: "MESSAGE_SEND_ERROR",
-            message: errorMessage,
-            details: error,
-            timestamp: new Date(),
-            severity: "medium",
-          });
+
+          // Preserve error code if it's an ApiError, otherwise use default
+          if (error && typeof error === "object" && "code" in error) {
+            setError(error as ApiError);
+          } else {
+            const errorMessage =
+              error instanceof Error ? error.message : "Failed to send message";
+            setError({
+              code: "MESSAGE_SEND_ERROR",
+              message: errorMessage,
+              details: error,
+              timestamp: new Date(),
+              severity: "medium",
+            });
+          }
         } finally {
           setLoading(false);
         }

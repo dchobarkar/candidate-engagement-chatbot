@@ -238,16 +238,15 @@ export async function POST(request: NextRequest) {
     try {
       // Check if API key is configured
       const apiKey = process.env.OPENAI_API_KEY;
-      if (!apiKey) {
-        console.error("OPENAI_API_KEY is not configured");
+      if (!apiKey || apiKey.trim() === "") {
         return createErrorResponse(
           {
-            code: "CONFIGURATION_ERROR",
-            message: "OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.",
+            code: "API_KEY_NOT_CONFIGURED",
+            message: "AI service is not configured. API keys are not loaded in this environment.",
             timestamp: new Date(),
-            severity: "high",
+            severity: "medium",
           },
-          500
+          503
         );
       }
 
