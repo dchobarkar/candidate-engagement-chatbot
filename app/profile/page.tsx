@@ -28,10 +28,10 @@ const Page = () => {
             Candidate Profile
           </h2>
           <Link
-            href="/chat"
+            href="/"
             className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
           >
-            Back to Chat
+            Back to Jobs
           </Link>
         </div>
         <Suspense fallback={<LoadingFallback />}>

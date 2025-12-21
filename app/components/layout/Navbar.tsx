@@ -47,14 +47,14 @@ const Navbar = ({ jobContext, currentSession }: NavbarProps) => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link
-              href="/chat"
+              href="/"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive("/chat")
+                isActive("/")
                   ? "bg-blue-100 text-blue-700"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
               }`}
             >
-              Chat
+              Jobs
             </Link>
             <Link
               href="/profile"
@@ -65,16 +65,6 @@ const Navbar = ({ jobContext, currentSession }: NavbarProps) => {
               }`}
             >
               Profile
-            </Link>
-            <Link
-              href="/job"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive("/job")
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              Job Info
             </Link>
           </nav>
 
@@ -117,15 +107,15 @@ const Navbar = ({ jobContext, currentSession }: NavbarProps) => {
           <div className="md:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-2">
               <Link
-                href="/chat"
+                href="/"
                 onClick={toggleMobileMenu}
                 className={`px-3 py-2 rounded-md text-sm font-medium text-left transition-colors ${
-                  isActive("/chat")
+                  isActive("/")
                     ? "bg-blue-100 text-blue-700"
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                 }`}
               >
-                Chat Interface
+                Jobs
               </Link>
               <Link
                 href="/profile"
@@ -137,17 +127,6 @@ const Navbar = ({ jobContext, currentSession }: NavbarProps) => {
                 }`}
               >
                 Candidate Profile
-              </Link>
-              <Link
-                href="/job"
-                onClick={toggleMobileMenu}
-                className={`px-3 py-2 rounded-md text-sm font-medium text-left transition-colors ${
-                  isActive("/job")
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                Job Information
               </Link>
             </nav>
           </div>

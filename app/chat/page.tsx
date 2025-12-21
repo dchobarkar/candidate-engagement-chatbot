@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useEffect, Suspense, lazy } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { useChatStore } from "../lib/store";
 import { useSession } from "../lib/hooks";
+import { getJobById } from "../data/jobs";
+import { sessionManager } from "../lib/session-manager";
 
 const ChatInterface = lazy(() => import("../components/ChatInterface"));
 const JobInfo = lazy(() =>
@@ -18,16 +21,37 @@ const ErrorDisplay = lazy(() =>
   }))
 );
 
-const Page = () => {
-  const { currentSession, initializeSession } = useSession();
-  const { isLoading, error } = useChatStore();
+// Inner component that uses useSearchParams
+const ChatPageContent = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const jobId = searchParams?.get("jobId");
+  const { currentSession } = useSession();
+  const { isLoading, error, setSession } = useChatStore();
+
+  // Redirect to home if no jobId is provided
+  useEffect(() => {
+    if (!jobId) {
+      router.replace("/");
+      return;
+    }
+  }, [jobId, router]);
 
   // Initialize session on component mount
   useEffect(() => {
-    if (!currentSession) {
-      initializeSession();
+    if (!currentSession && jobId) {
+      // Get the job and initialize session with it
+      const job = getJobById(jobId);
+      if (job) {
+        // Create session with specific job context
+        const newSession = sessionManager.createSession(undefined, job);
+        setSession(newSession);
+      } else {
+        // Job not found, redirect to home
+        router.replace("/");
+      }
     }
-  }, [currentSession, initializeSession]);
+  }, [currentSession, jobId, setSession, router]);
 
   // Loading fallback component
   const LoadingFallback = () => (
@@ -98,6 +122,7 @@ const Page = () => {
             <Suspense fallback={<LoadingFallback />}>
               <JobInfo
                 className="h-fit"
+                jobId={jobId || undefined}
                 showBenefits={true}
                 showRequirements={true}
                 showResponsibilities={true}
@@ -124,6 +149,20 @@ const Page = () => {
         </div>
       </div>
     </main>
+  );
+};
+
+const Page = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <LoadingSpinner size="xl" />
+        </div>
+      }
+    >
+      <ChatPageContent />
+    </Suspense>
   );
 };
 
